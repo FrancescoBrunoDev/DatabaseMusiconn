@@ -9,9 +9,10 @@
 	} from '$databaseMusiconn/stores/storeGraph';
 	import GraphSelector from '$databaseMusiconn/components/graphs/GraphSelector.svelte';
 	import Map from '$databaseMusiconn/components/graphs/map/Maps.svelte';
-	import { filteredEvents } from '$databaseMusiconn/stores/storeFilters';
 	import { getGeometries, getTitle, getTitleString } from '$databaseMusiconn/stores/storeEvents';
 	import { onMount } from 'svelte';
+
+	let { filteredEvents } = $props();
 
 	let isOver = $state(false);
 	let opacitySearchSection = $derived(isOver ? 0.3 : 1);

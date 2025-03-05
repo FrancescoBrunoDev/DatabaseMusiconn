@@ -2,6 +2,7 @@
 	import MainDatabase from '$databaseMusiconn/components/MainDatabase.svelte';
 	import ListeEvents from '$databaseMusiconn/components/listEvents/ListEvents.svelte';
 	import SettingsDatabase from '$databaseMusiconn/components/listEvents/SettingsDatabase.svelte';
+	import { filteredEvents } from '$databaseMusiconn/stores/storeFilters';
 
 	let { children } = $props();
 </script>
@@ -15,7 +16,7 @@
 		</div>
 	</div>
 
-	<MainDatabase />
-	<ListeEvents />
+	<MainDatabase {filteredEvents} />
+	<ListeEvents {filteredEvents} />
 	{@render children?.()}
 </section>
