@@ -2,7 +2,7 @@
 	import Modal from '$databaseMusiconn/components/ui/Modal.svelte';
 	import { Info } from 'lucide-svelte';
 	import { error } from '@sveltejs/kit';
-	import { locale } from '$databaseMusiconn/states/stateGeneral.svelte';
+	import { locale } from '$states/stateGeneral.svelte';
 	import Button from '$databaseMusiconn/components/ui/Button.svelte';
 
 	let isOpen = $state(false);

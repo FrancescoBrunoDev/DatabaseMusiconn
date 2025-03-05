@@ -1,22 +1,14 @@
 <script lang="ts">
 	import '$tailwind';
-	import NavBar from '$databaseMusiconn/components/layout/NavBar.svelte';
-	import { setFirstThemeData } from '$databaseMusiconn/states/stateGeneral.svelte';
+	import { setFirstThemeData } from '$states/stateGeneral.svelte';
 	import { browser } from '$app/environment';
 	import { onDestroy, onMount } from 'svelte';
 	import { setLocale } from '$lib/i18n/i18n-svelte';
 	import { loadLocaleAsync } from '$lib/i18n/i18n-util.async';
-	import { locale } from '$databaseMusiconn/states/stateGeneral.svelte';
+	import { locale } from '$states/stateGeneral.svelte';
 
 	let value: Locales = $state('en');
 	let { children } = $props();
-
-	async function handleLocaleChange() {
-		value = value === 'en' ? 'de' : 'en';
-		await loadLocaleAsync(value);
-		setLocale(value);
-		locale.current = value;
-	}
 
 	onMount(async () => {
 		const valueFromSession = locale.current || 'en';

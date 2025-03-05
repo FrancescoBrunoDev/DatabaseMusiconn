@@ -1,4 +1,4 @@
-import { urlBaseAPIMusiconn } from '$databaseMusiconn/states/stateGeneral.svelte';
+import { urlBaseAPIMusiconn } from '$states/stateGeneral.svelte';
 import { filters } from '$databaseMusiconn/stores/storeFilters';
 import { get, writable } from 'svelte/store';
 
