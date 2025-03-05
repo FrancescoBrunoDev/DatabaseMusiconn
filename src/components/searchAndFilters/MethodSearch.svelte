@@ -1,6 +1,9 @@
 <script lang="ts">
 	import LL from '$lib/i18n/i18n-svelte';
-	import { updateSelectedMethodFilter, selectedMethodFilter } from '$stores/storeFilters';
+	import {
+		updateSelectedMethodFilter,
+		selectedMethodFilter
+	} from '$databaseMusiconn/stores/storeFilters';
 	import { Filter, ChevronLeft } from 'lucide-svelte';
 	import { fly } from 'svelte/transition';
 	import { quintInOut } from 'svelte/easing';

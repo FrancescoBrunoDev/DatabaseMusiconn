@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { Expand } from 'lucide-svelte';
-	import GalleryOverlay from '$components/markdown/gallery/GalleryOverlay.svelte';
+	import GalleryOverlay from '$databaseMusiconn/components/markdown/gallery/GalleryOverlay.svelte';
 	import { cn } from '$lib/utils';
-	import type { Gallery } from '$components/markdown/gallery/types';
+	import type { Gallery } from '$databaseMusiconn/components/markdown/gallery/types';
 
 	interface Props {
 		gallery: Gallery;

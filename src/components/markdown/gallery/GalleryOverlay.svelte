@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { X, ChevronLeft, ChevronRight } from 'lucide-svelte';
 	import { cn } from '$lib/utils';
-	import View from '$components/markdown/gallery/View.svelte';
-	import Preview from '$components/markdown/gallery/Preview.svelte';
+	import View from '$databaseMusiconn/components/markdown/gallery/View.svelte';
+	import Preview from '$databaseMusiconn/components/markdown/gallery/Preview.svelte';
 	import { fly } from 'svelte/transition';
 	import { quadInOut } from 'svelte/easing';
-	import Portal from '$components/ui/Portal.svelte';
-	import type { Gallery } from '$components/markdown/gallery/types';
+	import Portal from '$databaseMusiconn/components/ui/Portal.svelte';
+	import type { Gallery } from '$databaseMusiconn/components/markdown/gallery/types';
 
 	interface Props {
 		gallery: Gallery;

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Modal from '$components/ui/Modal.svelte';
+	import Modal from '$databaseMusiconn/components/ui/Modal.svelte';
 	import Event from './Event.svelte';
 
 	interface Props {

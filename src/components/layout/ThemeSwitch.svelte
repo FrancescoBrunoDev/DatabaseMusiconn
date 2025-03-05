@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Button from '$components/ui/Button.svelte';
-	import { toggleTheme, themeKind } from '$states/stateGeneral.svelte';
+	import Button from '$databaseMusiconn/components/ui/Button.svelte';
+	import { toggleTheme, themeKind } from '$databaseMusiconn/states/stateGeneral.svelte';
 	import { draw } from 'svelte/transition';
 	import { expoInOut } from 'svelte/easing';
 </script>

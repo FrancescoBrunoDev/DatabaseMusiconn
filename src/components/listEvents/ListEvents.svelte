@@ -1,19 +1,19 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { filteredEvents, showEventAsModal } from '$stores/storeFilters';
-	import Event from '$components/listEvents/Event.svelte';
-	import SearchSection from '$components/searchAndFilters/SearchSection.svelte';
+	import { filteredEvents, showEventAsModal } from '$databaseMusiconn/stores/storeFilters';
+	import Event from '$databaseMusiconn/components/listEvents/Event.svelte';
+	import SearchSection from '$databaseMusiconn/components/searchAndFilters/SearchSection.svelte';
 	import {
 		setIsSearchSectionInEventsList,
 		getIsSearchSectionInEventsList,
 		getIsSearchSectionInEventsListOpen,
 		setIsSearchSectionInEventsListOpen
-	} from '$states/stateSearchSection.svelte';
+	} from '$databaseMusiconn/states/stateSearchSection.svelte';
 	import { fly } from 'svelte/transition';
 	import { cubicInOut, cubicOut } from 'svelte/easing';
 	import { ChevronUp } from 'lucide-svelte';
-	import EventWithModal from '$components/listEvents/EventWithModal.svelte';
-	import EventModal from '$components/listEvents/EventModal.svelte';
+	import EventWithModal from '$databaseMusiconn/components/listEvents/EventWithModal.svelte';
+	import EventModal from '$databaseMusiconn/components/listEvents/EventModal.svelte';
 
 	let selectedEventModal: EventItem | null = $state(null);
 	let isModalOpen = $state(false);

@@ -6,8 +6,8 @@
 		getTitleString,
 		getCountersForEvent,
 		getFormattedDate
-	} from '$stores/storeEvents';
-	import { filters } from '$stores/storeFilters';
+	} from '$databaseMusiconn/stores/storeEvents';
+	import { filters } from '$databaseMusiconn/stores/storeFilters';
 	import { Circle, FileInput } from 'lucide-svelte';
 	import { fly, slide } from 'svelte/transition';
 	import { cn } from '$lib/utils';

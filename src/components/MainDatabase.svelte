@@ -1,12 +1,16 @@
 <script lang="ts">
-	import LineGraphD3 from '$components/graphs/line/LineGraphD3.svelte';
-	import SearchSection from '$components/searchAndFilters/SearchSection.svelte';
-	import { getIsSearchSectionInEventsList } from '$states/stateSearchSection.svelte';
-	import { selectedGraphType, fetchOverpassData, dataForLineGraph } from '$stores/storeGraph';
-	import GraphSelector from '$components/graphs/GraphSelector.svelte';
-	import Map from '$components/graphs/map/Maps.svelte';
-	import { filteredEvents } from '$stores/storeFilters';
-	import { getGeometries, getTitle, getTitleString } from '$stores/storeEvents';
+	import LineGraphD3 from '$databaseMusiconn/components/graphs/line/LineGraphD3.svelte';
+	import SearchSection from '$databaseMusiconn/components/searchAndFilters/SearchSection.svelte';
+	import { getIsSearchSectionInEventsList } from '$databaseMusiconn/states/stateSearchSection.svelte';
+	import {
+		selectedGraphType,
+		fetchOverpassData,
+		dataForLineGraph
+	} from '$databaseMusiconn/stores/storeGraph';
+	import GraphSelector from '$databaseMusiconn/components/graphs/GraphSelector.svelte';
+	import Map from '$databaseMusiconn/components/graphs/map/Maps.svelte';
+	import { filteredEvents } from '$databaseMusiconn/stores/storeFilters';
+	import { getGeometries, getTitle, getTitleString } from '$databaseMusiconn/stores/storeEvents';
 	import { onMount } from 'svelte';
 
 	let isOver = $state(false);

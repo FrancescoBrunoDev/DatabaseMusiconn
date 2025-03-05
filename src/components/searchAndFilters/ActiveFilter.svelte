@@ -5,7 +5,7 @@
 		isAFilterDragged,
 		isMoveToActive,
 		makeFilterPersonBothPersonAndComposer
-	} from '$stores/storeFilters';
+	} from '$databaseMusiconn/stores/storeFilters';
 	import { createTooltip, melt } from '@melt-ui/svelte';
 	import { fade } from 'svelte/transition';
 	import { Circle } from 'lucide-svelte';

@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { getTitles, getCountersForEvent, getFormattedDate } from '$stores/storeEvents';
+	import {
+		getTitles,
+		getCountersForEvent,
+		getFormattedDate
+	} from '$databaseMusiconn/stores/storeEvents';
 	import { Circle } from 'lucide-svelte';
 	import { cn } from '$lib/utils';
 

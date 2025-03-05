@@ -1,9 +1,9 @@
-import { persistStore } from '$utils/storeUtils';
+import { persistStore } from '$databaseMusiconn/utils/storeUtils';
 import { get, writable } from 'svelte/store';
 
-import { type DataSeries } from '$components/graphs/line/LineGraphD3.svelte';
-import { endYear, fetchedEvents, startYear } from '$stores/storeEvents';
-import { filteredEvents, filters } from '$stores/storeFilters';
+import { type DataSeries } from '$databaseMusiconn/components/graphs/line/LineGraphD3.svelte';
+import { endYear, fetchedEvents, startYear } from '$databaseMusiconn/stores/storeEvents';
+import { filteredEvents, filters } from '$databaseMusiconn/stores/storeFilters';
 import osmtogeojson from 'osmtogeojson';
 
 const selectedGraphType = persistStore<'line' | 'map'>('selectedGraphType', 'line');

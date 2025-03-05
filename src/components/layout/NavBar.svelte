@@ -3,10 +3,10 @@
 	import { fly } from 'svelte/transition';
 	import { quintInOut } from 'svelte/easing';
 	import { X } from 'lucide-svelte';
-	import ThemeSwitch from '$components/layout/ThemeSwitch.svelte';
+	import ThemeSwitch from '$databaseMusiconn/components/layout/ThemeSwitch.svelte';
 	import { page } from '$app/stores';
-	import Button from '$components/ui/Button.svelte';
-	import { locale } from '$states/stateGeneral.svelte';
+	import Button from '$databaseMusiconn/components/ui/Button.svelte';
+	import { locale } from '$databaseMusiconn/states/stateGeneral.svelte';
 
 	let isHomePage = $derived($page.url.pathname === '/');
 

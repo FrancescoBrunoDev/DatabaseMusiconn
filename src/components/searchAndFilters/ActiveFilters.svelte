@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { filters } from '$stores/storeFilters';
-	import FilterGroup from '$components/searchAndFilters/FilterGroup.svelte';
+	import { filters } from '$databaseMusiconn/stores/storeFilters';
+	import FilterGroup from '$databaseMusiconn/components/searchAndFilters/FilterGroup.svelte';
 	import { fly, slide } from 'svelte/transition';
 
 	const filterMethods: Method[] = ['or', 'and', 'not'];

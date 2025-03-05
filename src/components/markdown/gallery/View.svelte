@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Gallery } from '$components/markdown/gallery/types';
+	import type { Gallery } from '$databaseMusiconn/components/markdown/gallery/types';
 	interface Props {
 		selected: { src: string; caption?: string };
 		gallery: Gallery;

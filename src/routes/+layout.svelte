@@ -1,12 +1,12 @@
 <script lang="ts">
 	import '$tailwind';
-	import NavBar from '$components/layout/NavBar.svelte';
-	import { setFirstThemeData } from '$states/stateGeneral.svelte';
+	import NavBar from '$databaseMusiconn/components/layout/NavBar.svelte';
+	import { setFirstThemeData } from '$databaseMusiconn/states/stateGeneral.svelte';
 	import { browser } from '$app/environment';
 	import { onDestroy, onMount } from 'svelte';
 	import { setLocale } from '$lib/i18n/i18n-svelte';
 	import { loadLocaleAsync } from '$lib/i18n/i18n-util.async';
-	import { locale } from '$states/stateGeneral.svelte';
+	import { locale } from '$databaseMusiconn/states/stateGeneral.svelte';
 
 	let value: Locales = $state('en');
 	let { children } = $props();

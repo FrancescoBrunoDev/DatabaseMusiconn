@@ -1,9 +1,9 @@
 <script lang="ts">
-	import Modal from '$components/ui/Modal.svelte';
+	import Modal from '$databaseMusiconn/components/ui/Modal.svelte';
 	import { Info } from 'lucide-svelte';
 	import { error } from '@sveltejs/kit';
-	import { locale } from '$states/stateGeneral.svelte';
-	import Button from '$components/ui/Button.svelte';
+	import { locale } from '$databaseMusiconn/states/stateGeneral.svelte';
+	import Button from '$databaseMusiconn/components/ui/Button.svelte';
 
 	let isOpen = $state(false);
 	let markdownData = $state({ content: '', meta: { title: '' } });

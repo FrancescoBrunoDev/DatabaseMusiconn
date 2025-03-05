@@ -1,7 +1,7 @@
 <script lang="ts">
 	// render a map (dots ) with d3
 	import { geoMercator, geoPath } from 'd3-geo';
-	import { JSONMuenster } from '$stores/storeGraph';
+	import { JSONMuenster } from '$databaseMusiconn/stores/storeGraph';
 
 	interface Props {
 		data: { name: string; geometries: { geo: number[] }[] }[];

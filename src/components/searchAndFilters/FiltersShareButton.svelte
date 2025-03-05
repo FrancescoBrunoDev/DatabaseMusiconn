@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { filtersUrlified, urlifyerFilters, filters } from '$stores/storeFilters';
+	import { filtersUrlified, urlifyerFilters, filters } from '$databaseMusiconn/stores/storeFilters';
 	import { Link } from 'lucide-svelte';
 
 	let isMouseOver: boolean = $state(false);

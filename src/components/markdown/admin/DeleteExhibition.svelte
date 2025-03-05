@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Button from '$components/ui/Button.svelte';
+	import Button from '$databaseMusiconn/components/ui/Button.svelte';
 	import { invalidateAll } from '$app/navigation';
 	interface Props {
 		exhibitionId: string;

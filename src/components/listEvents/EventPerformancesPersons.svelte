@@ -1,6 +1,6 @@
 <script lang="ts">
 	import LL from '$lib/i18n/i18n-svelte';
-	import { getTitleString } from '$stores/storeEvents';
+	import { getTitleString } from '$databaseMusiconn/stores/storeEvents';
 
 	interface Props {
 		performance: EventPerformance;

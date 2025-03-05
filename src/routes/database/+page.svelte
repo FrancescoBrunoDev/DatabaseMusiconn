@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { updateFilteredEventsAndUdateDataForGraph } from '$stores/storeGraph';
-	import { fetchedEvents } from '$stores/storeEvents';
-	import { filters } from '$stores/storeFilters';
+	import { updateFilteredEventsAndUdateDataForGraph } from '$databaseMusiconn/stores/storeGraph';
+	import { fetchedEvents } from '$databaseMusiconn/stores/storeEvents';
+	import { filters } from '$databaseMusiconn/stores/storeFilters';
 
 	import type { PageData } from './$types';
 

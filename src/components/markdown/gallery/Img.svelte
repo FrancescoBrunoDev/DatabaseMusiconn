@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import GalleryComponent from '$components/markdown/gallery/Gallery.svelte';
-	import type { Gallery } from '$components/markdown/gallery/types';
+	import GalleryComponent from '$databaseMusiconn/components/markdown/gallery/Gallery.svelte';
+	import type { Gallery } from '$databaseMusiconn/components/markdown/gallery/types';
 
 	interface Props {
 		src: string;

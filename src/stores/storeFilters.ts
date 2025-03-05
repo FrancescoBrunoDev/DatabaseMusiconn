@@ -1,7 +1,7 @@
-import { urlBaseAPIMusiconn } from '$states/stateGeneral.svelte';
-import { fetchedEvents } from '$stores/storeEvents';
-import { updateFilteredEventsAndUdateDataForGraph } from '$stores/storeGraph';
-import { persistStore } from '$utils/storeUtils';
+import { urlBaseAPIMusiconn } from '$databaseMusiconn/states/stateGeneral.svelte';
+import { fetchedEvents } from '$databaseMusiconn/stores/storeEvents';
+import { updateFilteredEventsAndUdateDataForGraph } from '$databaseMusiconn/stores/storeGraph';
+import { persistStore } from '$databaseMusiconn/utils/storeUtils';
 import { get, writable } from 'svelte/store';
 
 const filtersUrlified = writable<string>('');
@@ -56,20 +56,20 @@ const deUrlifyerFilters = async (filtersUrl: FiltersForUrl) => {
 	const filtersOr =
 		filtersUrl.fo && filtersUrl.fo !== '_'
 			? filtersUrl.fo
-					.split(',')
-					.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
+				.split(',')
+				.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
 			: [];
 	const filtersAnd =
 		filtersUrl.fa && filtersUrl.fa !== '_'
 			? filtersUrl.fa
-					.split(',')
-					.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
+				.split(',')
+				.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
 			: [];
 	const filtersNot =
 		filtersUrl.fn && filtersUrl.fn !== '_'
 			? filtersUrl.fn
-					.split(',')
-					.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
+				.split(',')
+				.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
 			: [];
 
 	function whichEntityIs(entity: string) {

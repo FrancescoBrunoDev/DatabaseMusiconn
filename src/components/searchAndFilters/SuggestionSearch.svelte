@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { slide } from 'svelte/transition';
-	import { addFilterElement, entitiesForSearchBox } from '$stores/storeFilters';
+	import { addFilterElement, entitiesForSearchBox } from '$databaseMusiconn/stores/storeFilters';
 	import {
 		getSuggestions,
 		setInputValue,
 		deleteSuggestions
-	} from '$states/stateSearchSection.svelte';
-	import { urlBaseAPIMusiconn } from '$states/stateGeneral.svelte';
-	import { projectID } from '$stores/storeEvents';
+	} from '$databaseMusiconn/states/stateSearchSection.svelte';
+	import { urlBaseAPIMusiconn } from '$databaseMusiconn/states/stateGeneral.svelte';
+	import { projectID } from '$databaseMusiconn/stores/storeEvents';
 	import { Loader2 } from 'lucide-svelte';
-	import { getIsSearchSectionInEventsList } from '$states/stateSearchSection.svelte';
+	import { getIsSearchSectionInEventsList } from '$databaseMusiconn/states/stateSearchSection.svelte';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 

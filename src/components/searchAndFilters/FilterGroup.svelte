@@ -1,8 +1,12 @@
 <script lang="ts">
 	import LL from '$lib/i18n/i18n-svelte';
 	import { slide, fade } from 'svelte/transition';
-	import ActiveFilter from '$components/searchAndFilters/ActiveFilter.svelte';
-	import { filters, moveFilterElement, isAFilterDragged } from '$stores/storeFilters';
+	import ActiveFilter from '$databaseMusiconn/components/searchAndFilters/ActiveFilter.svelte';
+	import {
+		filters,
+		moveFilterElement,
+		isAFilterDragged
+	} from '$databaseMusiconn/stores/storeFilters';
 	import { cn } from '$lib/utils';
 
 	interface Props {

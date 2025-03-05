@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { scaleLinear, max, line, curveBumpX, color } from 'd3';
-	import Axis from '$components/graphs/Axis.svelte';
-	import { startYear, endYear } from '$stores/storeEvents';
-	import Tooltip from '$components/graphs/line/Tooltip.svelte';
+	import Axis from '$databaseMusiconn/components/graphs/Axis.svelte';
+	import { startYear, endYear } from '$databaseMusiconn/stores/storeEvents';
+	import Tooltip from '$databaseMusiconn/components/graphs/line/Tooltip.svelte';
 
 	export type DataPoint = {
 		year: number;

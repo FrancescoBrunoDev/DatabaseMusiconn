@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { fly } from 'svelte/transition';
-	import Button from '$components/ui/Button.svelte';
+	import Button from '$databaseMusiconn/components/ui/Button.svelte';
 	import { cn } from '$lib/utils';
 
 	interface Props {

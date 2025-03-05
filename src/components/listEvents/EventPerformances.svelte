@@ -1,9 +1,9 @@
 <script lang="ts">
 	import LL from '$lib/i18n/i18n-svelte';
 	import { Circle, ChevronUp } from 'lucide-svelte';
-	import { filters } from '$stores/storeFilters';
-	import { getTitleString } from '$stores/storeEvents';
-	import EventPerformancesPersons from '$components/listEvents/EventPerformancesPersons.svelte';
+	import { filters } from '$databaseMusiconn/stores/storeFilters';
+	import { getTitleString } from '$databaseMusiconn/stores/storeEvents';
+	import EventPerformancesPersons from '$databaseMusiconn/components/listEvents/EventPerformancesPersons.svelte';
 	import { fly } from 'svelte/transition';
 	interface Props {
 		event: EventItem;

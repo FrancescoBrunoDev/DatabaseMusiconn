@@ -1,10 +1,10 @@
 <script lang="ts">
-	import Portal from '$components/ui/Portal.svelte';
+	import Portal from '$databaseMusiconn/components/ui/Portal.svelte';
 	import { fly } from 'svelte/transition';
 	import { quadInOut } from 'svelte/easing';
 	import { Minimize2 } from 'lucide-svelte';
 	import { cn } from '$lib/utils';
-	import Button from '$components/ui/Button.svelte';
+	import Button from '$databaseMusiconn/components/ui/Button.svelte';
 
 	interface Props {
 		children?: () => any;

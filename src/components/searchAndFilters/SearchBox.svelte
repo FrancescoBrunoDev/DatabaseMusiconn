@@ -4,10 +4,13 @@
 		autocomplete,
 		setInputValue,
 		deleteSuggestions
-	} from '$states/stateSearchSection.svelte';
-	import MethodSearch from '$components/searchAndFilters/MethodSearch.svelte';
-	import SuggestionSearch from '$components/searchAndFilters/SuggestionSearch.svelte';
-	import { entitiesForSearchBox, updateEntitiesForSearchBox } from '$stores/storeFilters';
+	} from '$databaseMusiconn/states/stateSearchSection.svelte';
+	import MethodSearch from '$databaseMusiconn/components/searchAndFilters/MethodSearch.svelte';
+	import SuggestionSearch from '$databaseMusiconn/components/searchAndFilters/SuggestionSearch.svelte';
+	import {
+		entitiesForSearchBox,
+		updateEntitiesForSearchBox
+	} from '$databaseMusiconn/stores/storeFilters';
 
 	const entities: Entity[] = ['person', 'work', 'corporation', 'location'];
 

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import MainDatabase from '$components/MainDatabase.svelte';
-	import ListeEvents from '$components/listEvents/ListEvents.svelte';
-	import SettingsDatabase from '$components/listEvents/SettingsDatabase.svelte';
+	import MainDatabase from '$databaseMusiconn/components/MainDatabase.svelte';
+	import ListeEvents from '$databaseMusiconn/components/listEvents/ListEvents.svelte';
+	import SettingsDatabase from '$databaseMusiconn/components/listEvents/SettingsDatabase.svelte';
 
 	let { children } = $props();
 </script>

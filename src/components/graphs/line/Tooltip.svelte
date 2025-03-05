@@ -2,8 +2,11 @@
 	import { bisector } from 'd3';
 	import { Tween } from 'svelte/motion';
 	import { expoInOut } from 'svelte/easing';
-	import { startYear } from '$stores/storeEvents';
-	import { type DataPoint, type DataSeries } from '$components/graphs/line/LineGraphD3.svelte';
+	import { startYear } from '$databaseMusiconn/stores/storeEvents';
+	import {
+		type DataPoint,
+		type DataSeries
+	} from '$databaseMusiconn/components/graphs/line/LineGraphD3.svelte';
 	import { LL } from '$lib/i18n/i18n-svelte';
 
 	interface Props {

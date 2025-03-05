@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { moveFilterElement } from '$stores/storeFilters';
+	import { moveFilterElement } from '$databaseMusiconn/stores/storeFilters';
 	import { ArrowLeftRight } from 'lucide-svelte';
 
 	interface Props {

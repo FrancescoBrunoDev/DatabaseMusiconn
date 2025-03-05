@@ -1,5 +1,5 @@
-import { urlBaseAPIMusiconn } from '$states/stateGeneral.svelte';
-import { filters } from '$stores/storeFilters';
+import { urlBaseAPIMusiconn } from '$databaseMusiconn/states/stateGeneral.svelte';
+import { filters } from '$databaseMusiconn/stores/storeFilters';
 import { get, writable } from 'svelte/store';
 
 const fetchedEvents = writable<Events>(undefined);

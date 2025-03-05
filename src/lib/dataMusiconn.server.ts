@@ -1,5 +1,5 @@
-import { urlBaseAPIMusiconn } from '$states/stateGeneral.svelte';
-import { endYear, mainLocationID, startYear } from '$stores/storeEvents';
+import { urlBaseAPIMusiconn } from '$databaseMusiconn/states/stateGeneral.svelte';
+import { endYear, mainLocationID, startYear } from '$databaseMusiconn/stores/storeEvents';
 import { get } from 'svelte/store';
 
 const getLocationEventsAndChildLocation = async (locationId: number) => {

@@ -1,11 +1,11 @@
 <script lang="ts">
-	import ActiveFilters from '$components/searchAndFilters/ActiveFilters.svelte';
-	import SearchBox from '$components/searchAndFilters/SearchBox.svelte';
+	import ActiveFilters from '$databaseMusiconn/components/searchAndFilters/ActiveFilters.svelte';
+	import SearchBox from '$databaseMusiconn/components/searchAndFilters/SearchBox.svelte';
 	import {
 		getIsSearchSectionInEventsListOpen,
 		getIsSearchSectionInEventsList
-	} from '$states/stateSearchSection.svelte';
-	import FiltersShareButton from '$components/searchAndFilters/FiltersShareButton.svelte';
+	} from '$databaseMusiconn/states/stateSearchSection.svelte';
+	import FiltersShareButton from '$databaseMusiconn/components/searchAndFilters/FiltersShareButton.svelte';
 	import { slide, fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { cn } from '$lib/utils';

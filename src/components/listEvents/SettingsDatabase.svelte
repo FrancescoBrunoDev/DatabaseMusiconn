@@ -1,8 +1,8 @@
 <script lang="ts">
-	import InfoSearch from '$components/searchAndFilters/InfoSearch.svelte';
-	import MenuDropdown from '$components/ui/MenuDropdown.svelte';
-	import CheckBox from '$components/ui/CheckBox.svelte';
-	import { isMoveToActive, showEventAsModal } from '$stores/storeFilters';
+	import InfoSearch from '$databaseMusiconn/components/searchAndFilters/InfoSearch.svelte';
+	import MenuDropdown from '$databaseMusiconn/components/ui/MenuDropdown.svelte';
+	import CheckBox from '$databaseMusiconn/components/ui/CheckBox.svelte';
+	import { isMoveToActive, showEventAsModal } from '$databaseMusiconn/stores/storeFilters';
 	import LL from '$lib/i18n/i18n-svelte';
 	import { Settings } from 'lucide-svelte';
 </script>
