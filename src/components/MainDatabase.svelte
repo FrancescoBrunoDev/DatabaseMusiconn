@@ -1,7 +1,7 @@
 <script lang="ts">
 	import LineGraphD3 from '$databaseMusiconn/components/graphs/line/LineGraphD3.svelte';
 	import SearchSection from '$databaseMusiconn/components/searchAndFilters/SearchSection.svelte';
-	import { getIsSearchSectionInEventsList } from '$databaseMusiconn/states/stateSearchSection.svelte';
+	import { getIsSearchSectionInEventsList } from '$states/stateSearchSection.svelte';
 	import {
 		selectedGraphType,
 		fetchOverpassData,
