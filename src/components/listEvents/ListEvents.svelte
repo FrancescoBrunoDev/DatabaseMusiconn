@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { showEventAsModal } from '$databaseMusiconn/stores/storeFilters';
+	import { filteredEvents, showEventAsModal } from '$databaseMusiconn/stores/storeFilters';
 	import Event from '$databaseMusiconn/components/listEvents/Event.svelte';
 	import SearchSection from '$databaseMusiconn/components/searchAndFilters/SearchSection.svelte';
 	import {
@@ -14,8 +14,6 @@
 	import { ChevronUp } from 'lucide-svelte';
 	import EventWithModal from '$databaseMusiconn/components/listEvents/EventWithModal.svelte';
 	import EventModal from '$databaseMusiconn/components/listEvents/EventModal.svelte';
-
-	let { filteredEvents } = $props();
 
 	let selectedEventModal: EventItem | null = $state(null);
 	let isModalOpen = $state(false);

@@ -6,3 +6,4 @@ build
 src/.mdcache
 package-lock.json
 yarn.lock
+tsconfig.json
