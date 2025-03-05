@@ -1,5 +1,5 @@
 <script lang="ts">
-	import MainDatabase from '$routes/database/MainDatabase.svelte';
+	import MainDatabase from '$components/MainDatabase.svelte';
 	import ListeEvents from '$components/listEvents/ListEvents.svelte';
 	import SettingsDatabase from '$components/listEvents/SettingsDatabase.svelte';
 
