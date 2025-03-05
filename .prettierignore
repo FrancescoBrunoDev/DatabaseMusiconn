@@ -1,0 +1,3 @@
+src/lib/i18n/
+.svelte-kit/
+build/

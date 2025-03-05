@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+	/* Colori base */
+	--color-border: hsl(var(--border));
+	--color-ring: hsl(var(--ring));
+	--color-background: hsl(var(--background));
+	--color-text: hsl(var(--text));
+	--color-primary: hsl(var(--primary));
+	--color-secondary: hsl(var(--secondary));
+	--color-destructive: hsl(var(--destructive));
+	--color-accent: hsl(var(--accent));
+
+	/* Colori dark */
+	--color-dark-border: hsl(var(--dark-border));
+	--color-dark-ring: hsl(var(--ring));
+	--color-dark-background: hsl(var(--dark-background));
+	--color-dark-text: hsl(var(--dark-text));
+	--color-dark-primary: hsl(var(--dark-primary));
+	--color-dark-secondary: hsl(var(--dark-secondary));
+	--color-dark-destructive: hsl(var(--dark-destructive));
+	--color-dark-accent: hsl(var(--dark-accent));
+
+	--radius-lg: var(--radius);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-sm: calc(var(--radius) - 4px);
+
+	--font-sans: 'Outfit', sans-serif;
+	--font-serif: 'Regatto', serif;
+}
+
+@utility container {
+	margin-inline: auto;
+	padding-inline: 2rem;
+	@media (width >= --theme(--breakpoint-sm)) {
+		max-width: none;
+	}
+	@media (width >= 1400px) {
+		max-width: 1400px;
+	}
+}
+
+@layer base {
+	:root {
+		--text: 0 60% 1%;
+		--background: 0 60% 99%;
+		--primary: 0 60% 1%;
+		--secondary: 240 5.9% 90%;
+		--white: 0 60% 99%;
+		--accent: 0 51% 46%;
+		--destructive: 0 84.2% 60.2%;
+		--border: 240 5.9% 90%;
+		--ring: 240 5.9% 10%;
+		--radius: 0.25rem;
+	}
+
+	.dark {
+		--dark-text: 0 60% 99%;
+		--dark-background: 0 60% 1%;
+		--dark-primary: 0 60% 99%;
+		--dark-secondary: 240 3.7% 25.9%;
+		--dark-accent: 0 51% 54%;
+		--dark-destructive: 0 62.8% 30.6%;
+		--dark-border: 240 3.7% 15.9%;
+		--text: 0 60% 99%;
+		--background: 0 60% 1%;
+		--primary: 0 60% 99%;
+		--secondary: 240 3.7% 25.9%;
+		--border: 240 3.7% 15.9%;
+		--ring: 240 4.9% 83.9%;
+	}
+
+	@font-face {
+		font-family: 'Regatto';
+		src: url(/fonts/Regatto/RegattoBold.ttf);
+		font-weight: bold;
+	}
+}

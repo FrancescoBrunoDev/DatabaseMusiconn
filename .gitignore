@@ -1,0 +1,8 @@
+node_modules
+.svelte-kit
+.vscode
+.env
+build
+src/.mdcache
+package-lock.json
+yarn.lock
