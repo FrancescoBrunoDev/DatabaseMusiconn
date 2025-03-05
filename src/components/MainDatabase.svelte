@@ -1,10 +1,10 @@
 <script lang="ts">
-	import LineGraphD3 from '$components/graphs/line/LineGraphD3.svelte';
+	import LineGraphD3 from '$databaseMusiconn/src/components/graphs/line/LineGraphD3.svelte';
 	import SearchSection from '$components/searchAndFilters/SearchSection.svelte';
 	import { getIsSearchSectionInEventsList } from '$states/stateSearchSection.svelte';
 	import { selectedGraphType, fetchOverpassData, dataForLineGraph } from '$stores/storeGraph';
-	import GraphSelector from '$components/graphs/GraphSelector.svelte';
-	import Map from '$components/graphs/map/Maps.svelte';
+	import GraphSelector from '$databaseMusiconn/src/components/graphs/GraphSelector.svelte';
+	import Map from '$databaseMusiconn/src/components/graphs/map/Maps.svelte';
 	import { filteredEvents } from '$stores/storeFilters';
 	import { getGeometries, getTitle, getTitleString } from '$stores/storeEvents';
 	import { onMount } from 'svelte';
