@@ -50,11 +50,29 @@
 	);
 
 	let xAxisTicks = $derived.by(() => {
-		const tickInterval = width < 600 ? 10 : 5;
+		// Calcola l'intervallo totale di anni
+		const yearRange = xDomain[1] - xDomain[0];
+
+		let tickInterval = 5; // intervallo base
+
+		if (yearRange > 200) {
+			tickInterval = 50;
+		} else if (yearRange > 100) {
+			tickInterval = 25;
+		} else if (yearRange > 50) {
+			tickInterval = 10;
+		} else if (yearRange > 30) {
+			tickInterval = 5;
+		} else {
+			// For short intervals, also consider the chart width
+			tickInterval = width < 600 ? 2 : 1;
+		}
+
 		let ticks = [];
 		for (let i = xDomain[0]; i <= xDomain[1]; i += tickInterval) {
 			ticks.push(i);
 		}
+
 		return ticks;
 	});
 

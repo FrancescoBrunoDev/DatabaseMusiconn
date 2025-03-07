@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { updateFilteredEventsAndUdateDataForGraph } from '$databaseMusiconn/stores/storeGraph';
-	import { fetchedEvents } from '$databaseMusiconn/stores/storeEvents';
+	import {
+		fetchedEvents,
+		endYear,
+		startYear,
+		useBounderiesYears
+	} from '$databaseMusiconn/stores/storeEvents';
 	import { filters } from '$databaseMusiconn/stores/storeFilters';
+	import { get } from 'svelte/store';
 
 	import type { PageData } from './$types';
 
@@ -18,6 +24,10 @@
 	});
 
 	fetchedEvents.set(data.props.events);
+	if (!get(useBounderiesYears)) {
+		startYear.set(data.props.startYear);
+		endYear.set(data.props.endYear);
+	}
 
 	updateFilteredEventsAndUdateDataForGraph();
 </script>

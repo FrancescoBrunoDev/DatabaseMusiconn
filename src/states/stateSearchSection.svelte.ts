@@ -70,10 +70,10 @@ const autocomplete = async () => {
 	const entities = _entitiesForSearchBox.join('|');
 	if (entities.length !== 0) {
 		try {
-			let _projectID: number = get(projectID);
+			let _projectID: number | null = get(projectID);
 
 			const res = await fetch(
-				`${urlBaseAPIMusiconn}?action=autocomplete&title=${inputValue}&entities=${entities}&max=20${projectID ? `&project=${_projectID}` : ''}&format=json`
+				`${urlBaseAPIMusiconn}?action=autocomplete&title=${inputValue}&entities=${entities}&max=20${_projectID ? `&project=${_projectID}` : ''}&format=json`
 			);
 			const results = await res.json();
 			const filteredSuggestions = removeFormSuggestionIfInFilters(results);

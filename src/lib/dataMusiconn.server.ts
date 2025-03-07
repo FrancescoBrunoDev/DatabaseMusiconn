@@ -1,18 +1,51 @@
 import { urlBaseAPIMusiconn } from '$states/stateGeneral.svelte';
-import { endYear, mainLocationID, startYear } from '$databaseMusiconn/stores/storeEvents';
+import { endYear, mainLocationID, startYear, useBounderiesYears } from '$databaseMusiconn/stores/storeEvents';
 import { get } from 'svelte/store';
 
-const getLocationEventsAndChildLocation = async (locationId: number) => {
+/**
+ * Funzione che implementa la logica di retry per le fetch
+ */
+const fetchWithRetry = async (url: string, retries = 3, delay = 1000, timeout = 30000) => {
+	const controller = new AbortController();
+	const timeoutId = setTimeout(() => controller.abort(), timeout);
+
 	try {
-		const res = await fetch(
+		for (let i = 0; i < retries; i++) {
+			try {
+				const response = await fetch(url, { signal: controller.signal });
+				if (response.ok) {
+					return await response.json();
+				}
+			} catch (error) {
+				console.warn(`Attempt ${i + 1} failed for ${url}. Retrying...`);
+				if (i === retries - 1) throw error;
+				// Delay before retry
+				await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+			}
+		}
+		throw new Error(`Failed after ${retries} retries`);
+	} finally {
+		clearTimeout(timeoutId);
+	}
+};
+
+/**
+ * Delay per evitare di sovraccaricare l'API
+ */
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const getLocationEventsAndChildLocation = async (locationId: number, depth = 0) => {
+	try {
+		// Introduciamo un ritardo proporzionale alla profondità per evitare troppe richieste simultanee
+		// await delay(Math.min(depth * 200, 1000));
+		const data = await fetchWithRetry(
 			`${urlBaseAPIMusiconn}?action=get&location=${locationId}&props=childs|events&format=json`
 		);
-		const data = await res.json();
 		let events = data.location[locationId].events || [];
 
 		if (data.location[locationId].childs && data.location[locationId].childs.length > 0) {
 			const childEventsPromises = data.location[locationId].childs.map((child: any) =>
-				getLocationEventsAndChildLocation(child.location)
+				getLocationEventsAndChildLocation(child.location, depth + 1)
 			);
 			const childEvents = await Promise.all(childEventsPromises);
 			events = events.concat(...childEvents);
@@ -39,10 +72,10 @@ const getAllEvents = async () => {
 
 		const fetchPromises = batches.map(async (batch: { event: string }[]) => {
 			const joinedEventIds = batch.map((eventObj) => eventObj.event).join('|');
-			const res = await fetch(
+			const data = await fetchWithRetry(
 				`${urlBaseAPIMusiconn}?action=get&event=${joinedEventIds}&props=uid|dates|locations|persons|performances|corporations|sources&format=json`
 			);
-			return res.json();
+			return data;
 		});
 
 		const jsons = await Promise.all(fetchPromises);
@@ -53,23 +86,55 @@ const getAllEvents = async () => {
 	}
 };
 
-const joinEventByYear = async () => {
-	const allEvents = await getAllEvents();
-	const eventsByYear: Events = {};
+const findfirstAndLastYear = async ({ allEvents }: { allEvents: any[] }) => {
+	let firstYear: number | null = null;
+	// last year default value is today year
+	let lastYear: number | null = null;
 	for (const batch of allEvents) {
 		const allEvents = batch.event;
 		for (const key in allEvents) {
 			const event = allEvents[key];
-			let startYearValue: number = get(startYear);
-			let endYearValue: number = get(endYear);
-			// se la data è antecedente al 1850 o successiva la 1900 non la considero
-			if (
-				event.dates[0].date.split('-')[0] < startYearValue ||
-				event.dates[0].date.split('-')[0] > endYearValue
-			) {
+			if (event && event.dates && event.dates[0] && event.dates[0].date) {
+				let year = event.dates[0].date.split('-')[0];
+				const yearNum = parseInt(year);
+				if (firstYear === null || yearNum < firstYear) {
+					firstYear = yearNum;
+				}
+				if (lastYear === null || yearNum > lastYear) {
+					lastYear = yearNum;
+				}
+			}
+		}
+	}
+	startYear.update(() => firstYear ?? 0);
+	endYear.update(() => lastYear ?? 0);
+	return { firstYear, lastYear };
+}
+
+const joinEventByYear = async () => {
+	const allEvents = await getAllEvents();
+	if (!get(useBounderiesYears)) {
+		console.log("finding first and last year")
+		await findfirstAndLastYear({ allEvents });
+	}
+	const eventsByYear: Events = {};
+
+	// Get values from stores or use firstYear/lastYear if they're null
+	let startYearValue = get(startYear)
+	let endYearValue = get(endYear)
+	console.log("here", startYearValue, endYearValue)
+	for (const batch of allEvents) {
+		const allEvents = batch.event;
+		for (const key in allEvents) {
+			const event = allEvents[key];
+			if (!event?.dates?.[0]?.date) continue;
+
+			const year = event.dates[0].date.split('-')[0];
+
+			// se la data è antecedente a startYearValue o successiva a endYearValue non la considero
+			if (year < startYearValue || year > endYearValue) {
 				continue;
 			}
-			const year = event.dates[0].date.split('-')[0];
 
 			if (eventsByYear[year]) {
 				eventsByYear[year].push(event);
@@ -79,7 +144,7 @@ const joinEventByYear = async () => {
 		}
 	}
 
-	return eventsByYear;
+	return { event: eventsByYear, startYear: startYearValue, endYear: endYearValue };
 };
 
 export { joinEventByYear };

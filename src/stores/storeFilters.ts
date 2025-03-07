@@ -351,7 +351,7 @@ const isMoreAPersonOrAComposer = async (id: number) => {
 		for (const event of events) {
 			const persons = event.persons;
 			try {
-				if (persons.length > 0) {
+				if (persons && persons.length > 0) {
 					for (const person of persons) {
 						if (person.person === personId) {
 							countPerson++;

@@ -273,9 +273,11 @@ const hasMatchingPerformances = (event: EventItem, filter: Filter) => {
 			}
 
 			if (performance.persons) {
-				for (const person of event.persons) {
-					if (filter.entity === 'person' && filter.id === person.person) {
-						return true;
+				if (event.persons) {
+					for (const person of event.persons) {
+						if (filter.entity === 'person' && filter.id === person.person) {
+							return true;
+						}
 					}
 				}
 			}
@@ -283,23 +285,29 @@ const hasMatchingPerformances = (event: EventItem, filter: Filter) => {
 	}
 	switch (filter.entity) {
 		case 'person':
-			for (const person of event.persons) {
-				if (filter.id === person.person) {
-					return true;
+			if (event.persons) {
+				for (const person of event.persons) {
+					if (filter.id === person.person) {
+						return true;
+					}
 				}
 			}
 			break;
 		case 'corporation':
-			for (const corporation of event.corporations) {
-				if (filter.id === corporation.corporation) {
-					return true;
+			if (event.corporations) {
+				for (const corporation of event.corporations) {
+					if (filter.id === corporation.corporation) {
+						return true;
+					}
 				}
 			}
 			break;
 		case 'location':
-			for (const location of event.locations) {
-				if (filter.id === location.location) {
-					return true;
+			if (event.locations) {
+				for (const location of event.locations) {
+					if (filter.id === location.location) {
+						return true;
+					}
 				}
 			}
 			break;

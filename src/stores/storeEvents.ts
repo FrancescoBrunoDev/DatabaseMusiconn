@@ -19,7 +19,8 @@ const kindMapping: { [key in Entity]: { key: string; uid: string } } = {
 	composer: { key: 'composers', uid: 'person' }
 };
 
-const projectID = writable<number>(26);
+const projectID = writable<number | null>(null);
+const useBounderiesYears = writable<boolean>(false);
 const startYear = writable<number>(1850);
 const endYear = writable<number>(1900);
 const mainLocationID = writable<number>(332); //307 (new 332) is the ID of Muenster in the musiconn database
@@ -202,5 +203,6 @@ export {
 	getTitleString,
 	mainLocationID,
 	projectID,
-	startYear
+	startYear,
+	useBounderiesYears
 };

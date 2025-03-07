@@ -60,7 +60,7 @@
 
 	async function getNumbers(suggestionID: number, entity: string | undefined) {
 		const res = await fetch(
-			`${urlBaseAPIMusiconn}?action=query&${entity}=${suggestionID}&entity=none&format=json&project=${$projectID}`
+			`${urlBaseAPIMusiconn}?action=query&${entity}=${suggestionID}&entity=none${$projectID ? `&project=${$projectID}` : ''}&format=json`
 		);
 		if (res.ok) {
 			const { count } = await res.json();
