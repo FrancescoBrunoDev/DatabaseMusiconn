@@ -114,7 +114,6 @@ const findfirstAndLastYear = async ({ allEvents }: { allEvents: any[] }) => {
 const joinEventByYear = async () => {
 	const allEvents = await getAllEvents();
 	if (!get(useBounderiesYears)) {
-		console.log("finding first and last year")
 		await findfirstAndLastYear({ allEvents });
 	}
 	const eventsByYear: Events = {};
@@ -122,7 +121,7 @@ const joinEventByYear = async () => {
 	// Get values from stores or use firstYear/lastYear if they're null
 	let startYearValue = get(startYear)
 	let endYearValue = get(endYear)
-	console.log("here", startYearValue, endYearValue)
+
 	for (const batch of allEvents) {
 		const allEvents = batch.event;
 		for (const key in allEvents) {
