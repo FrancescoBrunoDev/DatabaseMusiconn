@@ -1,9 +1,6 @@
 <script lang="ts">
 	import * as config from '$lib/config';
-	import { goto } from '$app/navigation';
-
-	// goto database
-	goto('/database');
+	import { redirect } from '@sveltejs/kit';
 </script>
 
 <svelte:head>
