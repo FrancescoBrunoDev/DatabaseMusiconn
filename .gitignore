@@ -1,6 +1,7 @@
 node_modules
 .svelte-kit
 .vscode
+.env.*
 .env
 build
 src/.mdcache
