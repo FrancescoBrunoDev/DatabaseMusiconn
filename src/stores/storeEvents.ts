@@ -11,6 +11,8 @@ const allTitles = writable<allTitles>({
 	composer: {}
 });
 
+const mainLocationInfo = writable<LocationInfo>(undefined); //307 (new 332) is the ID of Muenster in the musiconn database
+
 const kindMapping: { [key in Entity]: { key: string; uid: string } } = {
 	work: { key: 'performances', uid: 'work' },
 	person: { key: 'persons', uid: 'person' },
@@ -204,5 +206,6 @@ export {
 	mainLocationID,
 	projectID,
 	startYear,
-	useBounderiesYears
+	useBounderiesYears,
+	mainLocationInfo
 };

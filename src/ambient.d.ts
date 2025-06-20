@@ -8,6 +8,22 @@ type MuensterEventsAndChildLocation = {
 	};
 };
 
+type LocationInfo = {
+	uid: string;
+	title: string;
+	slug: string;
+	categories: [
+		{
+			label: number;
+		}
+	];
+	descritions: [
+		{
+			descrition: string;
+		}
+	];
+};
+
 type DataRecordChart = [
 	{
 		name: string;

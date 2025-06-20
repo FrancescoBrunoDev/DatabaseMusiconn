@@ -1,5 +1,10 @@
 import { urlBaseAPIMusiconn } from '$databaseMusiconn/states/stateGeneral.svelte';
-import { endYear, mainLocationID, startYear, useBounderiesYears } from '$databaseMusiconn/stores/storeEvents';
+import {
+	endYear,
+	mainLocationID,
+	startYear,
+	useBounderiesYears
+} from '$databaseMusiconn/stores/storeEvents';
 import { get } from 'svelte/store';
 
 /**
@@ -20,7 +25,7 @@ const fetchWithRetry = async (url: string, retries = 3, delay = 1000, timeout = 
 				console.warn(`Attempt ${i + 1} failed for ${url}. Retrying...`);
 				if (i === retries - 1) throw error;
 				// Delay before retry
-				await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+				await new Promise((resolve) => setTimeout(resolve, delay * (i + 1)));
 			}
 		}
 		throw new Error(`Failed after ${retries} retries`);
@@ -30,9 +35,27 @@ const fetchWithRetry = async (url: string, retries = 3, delay = 1000, timeout = 
 };
 
 /**
+ * Get the main location infos
+ *
+ * @param mainLocationID
+ * @returns Promise<LocationInfo>
+ */
+export async function getLocationInfo(mainLocationID: number): Promise<LocationInfo> {
+	try {
+		const response = await fetchWithRetry(
+			`${urlBaseAPIMusiconn}?action=get&location=${mainLocationID}&format=json`
+		);
+		return response.location[mainLocationID];
+	} catch (error) {
+		console.error('Error fetching location info:', error);
+		throw error;
+	}
+}
+
+/**
  * Delay per evitare di sovraccaricare l'API
  */
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const getLocationEventsAndChildLocation = async (locationId: number, depth = 0) => {
 	try {
@@ -109,7 +132,7 @@ const findfirstAndLastYear = async ({ allEvents }: { allEvents: any[] }) => {
 	startYear.update(() => firstYear ?? 0);
 	endYear.update(() => lastYear ?? 0);
 	return { firstYear, lastYear };
-}
+};
 
 const joinEventByYear = async () => {
 	const allEvents = await getAllEvents();
@@ -119,8 +142,8 @@ const joinEventByYear = async () => {
 	const eventsByYear: Events = {};
 
 	// Get values from stores or use firstYear/lastYear if they're null
-	let startYearValue = get(startYear)
-	let endYearValue = get(endYear)
+	let startYearValue = get(startYear);
+	let endYearValue = get(endYear);
 	console.log('Start Year:', startYearValue, 'End Year:', endYearValue);
 
 	for (const batch of allEvents) {

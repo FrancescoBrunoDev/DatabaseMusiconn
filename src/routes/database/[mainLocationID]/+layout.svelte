@@ -2,6 +2,7 @@
 	import MainDatabase from '$databaseMusiconn/components/MainDatabase.svelte';
 	import ListeEvents from '$databaseMusiconn/components/listEvents/ListEvents.svelte';
 	import SettingsDatabase from '$databaseMusiconn/components/listEvents/SettingsDatabase.svelte';
+	import MainLocationInfo from '$databaseMusiconn/components/listEvents/MainLocationInfo.svelte';
 
 	let { children } = $props();
 </script>
@@ -14,7 +15,9 @@
 			<SettingsDatabase />
 		</div>
 	</div>
-
+	<div class="sticky top-10 z-40 flex justify-center">
+		<MainLocationInfo />
+	</div>
 	<MainDatabase />
 	<ListeEvents />
 	{@render children?.()}

@@ -4,7 +4,8 @@
 		fetchedEvents,
 		endYear,
 		startYear,
-		useBounderiesYears
+		useBounderiesYears,
+		mainLocationInfo
 	} from '$databaseMusiconn/stores/storeEvents';
 	import { filters } from '$databaseMusiconn/stores/storeFilters';
 	import { get } from 'svelte/store';
@@ -22,6 +23,8 @@
 		or: [],
 		not: []
 	});
+
+	mainLocationInfo.set(data.props);
 
 	fetchedEvents.set(data.props.events);
 	if (!get(useBounderiesYears)) {
