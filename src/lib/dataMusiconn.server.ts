@@ -1,4 +1,4 @@
-import { urlBaseAPIMusiconn } from '$states/stateGeneral.svelte';
+import { urlBaseAPIMusiconn } from '$databaseMusiconn/states/stateGeneral.svelte';
 import { endYear, mainLocationID, startYear, useBounderiesYears } from '$databaseMusiconn/stores/storeEvents';
 import { get } from 'svelte/store';
 

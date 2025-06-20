@@ -6,7 +6,7 @@
 		setInputValue,
 		deleteSuggestions
 	} from '$databaseMusiconn/states/stateSearchSection.svelte';
-	import { urlBaseAPIMusiconn } from '$states/stateGeneral.svelte';
+	import { urlBaseAPIMusiconn } from '$databaseMusiconn/states/stateGeneral.svelte';
 	import { projectID } from '$databaseMusiconn/stores/storeEvents';
 	import { Loader2 } from 'lucide-svelte';
 	import { getIsSearchSectionInEventsList } from '$databaseMusiconn/states/stateSearchSection.svelte';

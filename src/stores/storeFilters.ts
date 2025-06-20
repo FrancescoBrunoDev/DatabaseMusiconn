@@ -1,4 +1,4 @@
-import { urlBaseAPIMusiconn } from '$states/stateGeneral.svelte';
+import { urlBaseAPIMusiconn } from '$databaseMusiconn/states/stateGeneral.svelte';
 import { fetchedEvents } from '$databaseMusiconn/stores/storeEvents';
 import { updateFilteredEventsAndUdateDataForGraph } from '$databaseMusiconn/stores/storeGraph';
 import { persistStore } from '$databaseMusiconn/utils/storeUtils';
