@@ -4,10 +4,14 @@ import type { PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 
-let cachedEvents: Events;
-let startYear: number;
-let endYear: number;
-let locationInfo: LocationInfo;
+// Use a cache object that stores data by location ID
+const cache: Record<string, {
+	events: Events,
+	startYear: number,
+	endYear: number,
+	locationInfo: LocationInfo,
+	timestamp: number // Add timestamp for cache invalidation if needed
+}> = {};
 
 export const load: PageServerLoad = async ({ params }) => {
 	// if a param.mainLocationID is given the use that instead of the mainLocationID store.
@@ -19,25 +23,49 @@ export const load: PageServerLoad = async ({ params }) => {
 		mainLocationID.set(Number(params.mainLocationID));
 	}
 
-	if (!cachedEvents) {
+	const currentLocationId = params.mainLocationID;
+
+	// Check if we need to fetch new data - either no cached data for this location
+	// or the cached data is too old (optional, based on your requirements)
+	const needsFreshData = !cache[currentLocationId] ||
+		Date.now() - cache[currentLocationId].timestamp > 3600000; // 1 hour cache
+
+	if (needsFreshData) {
 		try {
 			const res = await joinEventByYear();
-			locationInfo = await getLocationInfo(get(mainLocationID));
-			cachedEvents = res.event;
-			startYear = res.startYear;
-			endYear = res.endYear;
+			const locationInfo = await getLocationInfo(get(mainLocationID));
+
+			// Update the cache with fresh data
+			cache[currentLocationId] = {
+				events: res.event,
+				startYear: res.startYear,
+				endYear: res.endYear,
+				locationInfo: locationInfo,
+				timestamp: Date.now()
+			};
 		} catch (error) {
 			console.error('An error occurred while fetching events:', error);
-			cachedEvents = {};
+			// Initialize with empty data if not already cached
+			if (!cache[currentLocationId]) {
+				cache[currentLocationId] = {
+					events: {},
+					startYear: 0,
+					endYear: 0,
+					locationInfo: {} as LocationInfo,
+					timestamp: Date.now()
+				};
+			}
 		}
 	}
 
+	const currentCache = cache[currentLocationId] || { events: {}, startYear: 0, endYear: 0, locationInfo: {} as LocationInfo };
+
 	return {
 		props: {
-			events: cachedEvents,
-			startYear: startYear,
-			endYear: endYear,
-			locationInfo: locationInfo
+			events: currentCache.events,
+			startYear: currentCache.startYear,
+			endYear: currentCache.endYear,
+			locationInfo: currentCache.locationInfo
 		}
 	};
 };

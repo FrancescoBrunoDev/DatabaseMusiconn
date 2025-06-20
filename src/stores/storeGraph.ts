@@ -6,7 +6,7 @@ import { endYear, fetchedEvents, startYear } from '$databaseMusiconn/stores/stor
 import { filteredEvents, filters } from '$databaseMusiconn/stores/storeFilters';
 import osmtogeojson from 'osmtogeojson';
 
-const selectedGraphType = persistStore<'line' | 'map'>('selectedGraphType', 'line');
+const selectedGraphType = persistStore<'line' | 'map' | 'map-pmtiles'>('selectedGraphType', 'line');
 const JSONMuenster = persistStore<any>('JSONMuenster', {});
 const dataForLineGraph = writable<DataSeries[]>([]);
 
@@ -132,9 +132,7 @@ const updateFilteredEventsAndUdateDataForGraph = async () => {
 
 	let _startYear: number = get(startYear);
 	let _endYear: number = get(endYear);
-	console.log('updateFilteredEventsAndUdateDataForGraph', _startYear, _endYear, _filters);
 	filteredEvents.set({});
-	console.log(_startYear, _endYear, _filters);
 	// there should be an yearObj for each year from startYear to endYear
 	for (let year = _startYear; year <= _endYear + 10; year++) {
 		const events = _fetchedEvents[year as keyof Events] || [];

@@ -144,7 +144,6 @@ const joinEventByYear = async () => {
 	// Get values from stores or use firstYear/lastYear if they're null
 	let startYearValue = get(startYear);
 	let endYearValue = get(endYear);
-	console.log('Start Year:', startYearValue, 'End Year:', endYearValue);
 
 	for (const batch of allEvents) {
 		const allEvents = batch.event;
