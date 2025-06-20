@@ -132,13 +132,12 @@ const updateFilteredEventsAndUdateDataForGraph = async () => {
 
 	let _startYear: number = get(startYear);
 	let _endYear: number = get(endYear);
-
+	console.log('updateFilteredEventsAndUdateDataForGraph', _startYear, _endYear, _filters);
 	filteredEvents.set({});
-
+	console.log(_startYear, _endYear, _filters);
 	// there should be an yearObj for each year from startYear to endYear
 	for (let year = _startYear; year <= _endYear + 10; year++) {
 		const events = _fetchedEvents[year as keyof Events] || [];
-
 		const yearObj: DataRecordCoordinates = {
 			x: year,
 			filters: {},
