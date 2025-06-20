@@ -24,7 +24,7 @@
 		not: []
 	});
 
-	mainLocationInfo.set(data.props);
+	mainLocationInfo.set(data.props.locationInfo);
 
 	fetchedEvents.set(data.props.events);
 	if (!get(useBounderiesYears)) {
