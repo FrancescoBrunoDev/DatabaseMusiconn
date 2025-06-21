@@ -35,11 +35,40 @@
 	const workData = $derived(prepareChartData('work'));
 	const composerData = $derived(prepareChartData('composer'));
 	const personData = $derived(prepareChartData('person'));
+
+	// find dinamically the parent container width
+	let parentContainerWidth = $state(0);
+	let parentContainerHeight = $state(0);
 </script>
 
-<div class="flex overflow-scroll w-full justify-between gap-4 snap-x snap-mandatory h-full">
-	<PieChart data={locationData} title={getEntityName('location')} width={150} height={150} />
-	<PieChart data={workData} title={getEntityName('work')} width={150} height={150} />
-	<PieChart data={composerData} title={getEntityName('composer')} width={150} height={150} />
-	<PieChart data={personData} title={getEntityName('person')} width={150} height={150} />
+<div
+	id="pie-chart-container"
+	bind:clientWidth={parentContainerWidth}
+	bind:clientHeight={parentContainerHeight}
+	class="flex overflow-scroll w-full justify-between gap-4 snap-x snap-mandatory h-full"
+>
+	<PieChart
+		data={locationData}
+		title={getEntityName('location')}
+		width={parentContainerWidth}
+		height={parentContainerHeight}
+	/>
+	<PieChart
+		data={workData}
+		title={getEntityName('work')}
+		width={parentContainerWidth}
+		height={parentContainerHeight}
+	/>
+	<PieChart
+		data={composerData}
+		title={getEntityName('composer')}
+		width={parentContainerWidth}
+		height={parentContainerHeight}
+	/>
+	<PieChart
+		data={personData}
+		title={getEntityName('person')}
+		width={parentContainerWidth}
+		height={parentContainerHeight}
+	/>
 </div>

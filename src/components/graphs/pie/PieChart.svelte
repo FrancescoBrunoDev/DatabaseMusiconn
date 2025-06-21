@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { getTitleString } from '$databaseMusiconn/stores/storeEvents';
+	import { cn } from '$databaseMusiconn/lib/utils';
 
 	const {
 		data = [],
 		title = '',
-		width = 150,
-		height = 150
+		width = $bindable(150),
+		height = $bindable(150)
 	} = $props<{
 		data?: {
 			id: string;
@@ -22,12 +23,13 @@
 	let svg = $state<SVGSVGElement | null>(null);
 	let chartArea = $state<SVGGElement | null>(null);
 	let labelsGroup = $state<SVGGElement | null>(null);
+	let isSmallScreen = $derived(width < 400);
 
 	// Calculate the actual dimensions with space for labels
-	const effectiveWidth = width;
-	const effectiveHeight = height;
-	const svgWidth = width * 1.5;
-	const svgHeight = height * 1.5;
+	const effectiveWidth = $derived(width);
+	const effectiveHeight = $derived(height * (isSmallScreen ? 0.5 : 0.6)); // Reduced height for labels
+	const svgWidth = $derived(width * 1.5);
+	const svgHeight = $derived(height);
 
 	const names = $state<Record<string, string>>({});
 
@@ -134,7 +136,7 @@
 				path.setAttribute('d', pathData);
 				path.setAttribute('fill', 'transparent'); // Default fill color
 				path.setAttribute('stroke', 'hsl(var(--primary))');
-				path.setAttribute('stroke-width', '1');
+				path.setAttribute('stroke-width', '2');
 
 				if (chartArea) {
 					chartArea.appendChild(path);
@@ -217,7 +219,7 @@
 				connector.setAttribute('x2', labelX.toString());
 				connector.setAttribute('y2', labelY.toString());
 				connector.setAttribute('stroke', 'hsl(var(--primary))');
-				connector.setAttribute('stroke-width', '1');
+				connector.setAttribute('stroke-width', '2');
 				if (labelsGroup) {
 					labelsGroup.appendChild(connector);
 				}
@@ -238,10 +240,19 @@
 	}
 </script>
 
-<div class="snap-center min-w-full flex flex-col items-center justify-center">
+<div
+	id="{title}-pie-chart"
+	class="snap-center relative min-w-full flex flex-col items-center justify-center"
+>
 	<svg bind:this={svg} width={svgWidth} height={svgHeight}>
 		<g bind:this={chartArea} transform={`translate(0, 0)`}></g>
 		<g bind:this={labelsGroup} transform={`translate(0, 0)`}></g>
 	</svg>
-	<div class="text-center font-bold mb-1 text-sm">{title}</div>
+	<div
+		class={cn('text-center font-bold mb-1 text-sm', {
+			'absolute left-0': !isSmallScreen
+		})}
+	>
+		{title}
+	</div>
 </div>
