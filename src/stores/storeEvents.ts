@@ -57,12 +57,32 @@ const getTitle = async (allUids: string[], kind: Entity) => {
 	if (kind === 'composer') {
 		kindForApi = 'person';
 	}
-	const uids = allUids.length > 1 ? allUids.join('|') : allUids[0];
-	const res = await fetch(
-		`${urlBaseAPIMusiconn}?action=get&${kindForApi}=${uids}&props=title&format=json`
+
+	// Process IDs in batches of 50 to avoid URL length limitations
+	const batchSize = 50;
+	const batches = [];
+
+	// Split all UIDs into batches
+	for (let i = 0; i < allUids.length; i += batchSize) {
+		batches.push(allUids.slice(i, i + batchSize));
+	}
+
+	// Process all batches in parallel
+	const results = await Promise.all(
+		batches.map(async (batchUids) => {
+			const uids = batchUids.length > 1 ? batchUids.join('|') : batchUids[0];
+			const res = await fetch(
+				`${urlBaseAPIMusiconn}?action=get&${kindForApi}=${uids}&props=title&format=json`
+			);
+			const json = await res.json();
+			return json[kindForApi] || {};
+		})
 	);
-	const json = await res.json();
-	const titles = json[kindForApi];
+
+	// Merge all batch results
+	const titles = results.reduce((acc, batch) => ({ ...acc, ...batch }), {});
+
+	// Update store with all fetched titles
 	allTitles.update((allTitlesMom) => {
 		allTitlesMom[kind] = { ...allTitlesMom[kind], ...titles };
 		return allTitlesMom;
