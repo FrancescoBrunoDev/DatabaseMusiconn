@@ -224,8 +224,8 @@ export {
 	getTitles,
 	getTitleString,
 	mainLocationID,
+	mainLocationInfo,
 	projectID,
 	startYear,
-	useBounderiesYears,
-	mainLocationInfo
+	useBounderiesYears
 };

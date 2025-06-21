@@ -1,17 +1,20 @@
-import { joinEventByYear, getLocationInfo } from '$databaseMusiconn/lib/dataMusiconn.server';
-import { mainLocationID, useBounderiesYears } from '$databaseMusiconn/stores/storeEvents';
-import type { PageServerLoad } from './$types';
+import { getLocationInfo, joinEventByYear } from '$databaseMusiconn/lib/dataMusiconn.server';
+import { mainLocationID } from '$databaseMusiconn/stores/storeEvents';
 import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
+import type { PageServerLoad } from './$types';
 
 // Use a cache object that stores data by location ID
-const cache: Record<string, {
-	events: Events,
-	startYear: number,
-	endYear: number,
-	locationInfo: LocationInfo,
-	timestamp: number // Add timestamp for cache invalidation if needed
-}> = {};
+const cache: Record<
+	string,
+	{
+		events: Events;
+		startYear: number;
+		endYear: number;
+		locationInfo: LocationInfo;
+		timestamp: number; // Add timestamp for cache invalidation if needed
+	}
+> = {};
 
 export const load: PageServerLoad = async ({ params }) => {
 	// if a param.mainLocationID is given the use that instead of the mainLocationID store.
@@ -27,8 +30,8 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	// Check if we need to fetch new data - either no cached data for this location
 	// or the cached data is too old (optional, based on your requirements)
-	const needsFreshData = !cache[currentLocationId] ||
-		Date.now() - cache[currentLocationId].timestamp > 3600000; // 1 hour cache
+	const needsFreshData =
+		!cache[currentLocationId] || Date.now() - cache[currentLocationId].timestamp > 3600000; // 1 hour cache
 
 	if (needsFreshData) {
 		try {
@@ -58,7 +61,12 @@ export const load: PageServerLoad = async ({ params }) => {
 		}
 	}
 
-	const currentCache = cache[currentLocationId] || { events: {}, startYear: 0, endYear: 0, locationInfo: {} as LocationInfo };
+	const currentCache = cache[currentLocationId] || {
+		events: {},
+		startYear: 0,
+		endYear: 0,
+		locationInfo: {} as LocationInfo
+	};
 
 	return {
 		props: {

@@ -45,7 +45,7 @@
 	id="pie-chart-container"
 	bind:clientWidth={parentContainerWidth}
 	bind:clientHeight={parentContainerHeight}
-	class="flex overflow-scroll w-full justify-between gap-4 snap-x snap-mandatory h-full"
+	class="flex h-full w-full snap-x snap-mandatory justify-between gap-4 overflow-scroll"
 >
 	<PieChart
 		data={locationData}

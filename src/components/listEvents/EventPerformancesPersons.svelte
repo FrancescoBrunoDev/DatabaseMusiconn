@@ -33,6 +33,6 @@
 		<span>:</span>
 		<span class="text-sm">{title}</span>
 	{:catch error}
-		<span class="text-sm text-destructive">Error loading persons</span>
+		<span class="text-destructive text-sm">Error loading persons</span>
 	{/await}
 {/if}

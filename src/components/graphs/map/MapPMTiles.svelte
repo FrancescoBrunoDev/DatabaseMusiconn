@@ -256,7 +256,7 @@
 >
 	{#if isLoading}
 		<div
-			class="absolute top-0 left-0 w-full h-full z-10 bg-background flex items-center justify-center"
+			class="bg-background absolute top-0 left-0 z-10 flex h-full w-full items-center justify-center"
 		>
 			<div class="loader-spinner"></div>
 		</div>
@@ -264,9 +264,9 @@
 
 	{#if loadError}
 		<div
-			class="absolute top-0 left-0 w-full h-full z-10 bg-background flex items-center justify-center text-center p-4"
+			class="bg-background absolute top-0 left-0 z-10 flex h-full w-full items-center justify-center p-4 text-center"
 		>
-			<p class="text-red-600 font-medium">{loadError}</p>
+			<p class="font-medium text-red-600">{loadError}</p>
 		</div>
 	{/if}
 

@@ -14,8 +14,8 @@ type Statistics = {
 			count: number;
 			color: string;
 		};
-	}
-}
+	};
+};
 
 type LocationInfo = {
 	uid: string;

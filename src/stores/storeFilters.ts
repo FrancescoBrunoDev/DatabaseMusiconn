@@ -4,7 +4,7 @@ import { updateFilteredEventsAndUdateDataForGraph } from '$databaseMusiconn/stor
 import { persistStore } from '$databaseMusiconn/utils/storeUtils';
 import { get, writable } from 'svelte/store';
 
-const statistic = writable<Statistics | null>(null)
+const statistic = writable<Statistics | null>(null);
 
 const filtersUrlified = writable<string>('');
 const filters = writable<Filters>({
@@ -33,7 +33,6 @@ const entitiesForSearchBox = writable<Entity[]>(['person', 'corporation', 'work'
 const isAFilterDragged = writable<boolean>(false);
 const isMoveToActive = persistStore<boolean>('isMoveToActive', false);
 const showEventAsModal = persistStore<boolean>('showEventAsModal', true);
-
 
 const buildStatistics = () => {
 	let _filteredEvents: Events = get(filteredEvents);
@@ -149,7 +148,7 @@ const buildStatistics = () => {
 	statistic.set(stats);
 
 	return stats;
-}
+};
 
 const updateSelectedMethodFilter = (method: Method) => {
 	selectedMethodFilter.set(method);
@@ -175,20 +174,20 @@ const deUrlifyerFilters = async (filtersUrl: FiltersForUrl) => {
 	const filtersOr =
 		filtersUrl.fo && filtersUrl.fo !== '_'
 			? filtersUrl.fo
-				.split(',')
-				.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
+					.split(',')
+					.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
 			: [];
 	const filtersAnd =
 		filtersUrl.fa && filtersUrl.fa !== '_'
 			? filtersUrl.fa
-				.split(',')
-				.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
+					.split(',')
+					.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
 			: [];
 	const filtersNot =
 		filtersUrl.fn && filtersUrl.fn !== '_'
 			? filtersUrl.fn
-				.split(',')
-				.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
+					.split(',')
+					.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
 			: [];
 
 	function whichEntityIs(entity: string) {
@@ -516,6 +515,7 @@ const updateEntitiesForSearchBox = (selected: Entity) => {
 
 export {
 	addFilterElement,
+	buildStatistics,
 	changeFilterPersonOrComposer,
 	colorFilters,
 	deUrlifyerFilters,
@@ -530,9 +530,8 @@ export {
 	removeFilterElement,
 	selectedMethodFilter,
 	showEventAsModal,
+	statistic,
 	updateEntitiesForSearchBox,
 	updateSelectedMethodFilter,
-	urlifyerFilters,
-	statistic,
-	buildStatistics
+	urlifyerFilters
 };

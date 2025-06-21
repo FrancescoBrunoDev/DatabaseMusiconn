@@ -246,14 +246,14 @@
 
 <div
 	id="{title}-pie-chart"
-	class="snap-center relative min-w-full flex flex-col items-center justify-center"
+	class="relative flex min-w-full snap-center flex-col items-center justify-center"
 >
 	<svg bind:this={svg} width={svgWidth} height={svgHeight}>
 		<g bind:this={chartArea} transform={`translate(0, 0)`}></g>
 		<g bind:this={labelsGroup} transform={`translate(0, 0)`}></g>
 	</svg>
 	<div
-		class={cn('text-center font-bold mb-1 text-sm', {
+		class={cn('mb-1 text-center text-sm font-bold', {
 			'absolute left-0': !isSmallScreen
 		})}
 	>
