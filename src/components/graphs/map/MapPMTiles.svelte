@@ -201,7 +201,6 @@
 
 					// Add hover events for this point
 					map.on('mouseenter', pointId, () => {
-						map.getCanvas().style.cursor = 'pointer';
 						hoveredPointId = pointId;
 						// Show the DOM label instead of changing layout property
 						if (labelMarkers && labelMarkers[pointId]) {
@@ -210,7 +209,6 @@
 					});
 
 					map.on('mouseleave', pointId, () => {
-						map.getCanvas().style.cursor = '';
 						hoveredPointId = null;
 						// Hide the DOM label
 						if (labelMarkers && labelMarkers[pointId]) {
