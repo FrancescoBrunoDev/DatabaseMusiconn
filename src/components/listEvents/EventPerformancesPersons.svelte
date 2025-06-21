@@ -19,15 +19,20 @@
 	}
 </script>
 
-<button
-	onclick={() => (isPersonOpen = !isPersonOpen)}
-	class="pl-1 font-bold hover:scale-103 dark:font-semibold">{$LL.events.performedBy()}</button
->
+{#if performance.persons}
+	<button
+		onclick={() => (isPersonOpen = !isPersonOpen)}
+		class="pl-1 font-bold hover:scale-103 dark:font-semibold">{$LL.events.performedBy()}</button
+	>
+{/if}
+
 {#if isPersonOpen}
 	{#await joinPersons(performance.persons)}
 		<div>load</div>
 	{:then title}
 		<span>:</span>
 		<span class="text-sm">{title}</span>
+	{:catch error}
+		<span class="text-sm text-destructive">Error loading persons</span>
 	{/await}
 {/if}
