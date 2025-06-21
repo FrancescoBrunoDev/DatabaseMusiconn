@@ -4,6 +4,8 @@ import { updateFilteredEventsAndUdateDataForGraph } from '$databaseMusiconn/stor
 import { persistStore } from '$databaseMusiconn/utils/storeUtils';
 import { get, writable } from 'svelte/store';
 
+const statistic = writable<Statistics | null>(null)
+
 const filtersUrlified = writable<string>('');
 const filters = writable<Filters>({
 	and: [],
@@ -31,6 +33,123 @@ const entitiesForSearchBox = writable<Entity[]>(['person', 'corporation', 'work'
 const isAFilterDragged = writable<boolean>(false);
 const isMoveToActive = persistStore<boolean>('isMoveToActive', false);
 const showEventAsModal = persistStore<boolean>('showEventAsModal', true);
+
+
+const buildStatistics = () => {
+	let _filteredEvents: Events = get(filteredEvents);
+	let stats: Statistics = {
+		location: {},
+		work: {},
+		composer: {},
+		person: {}
+	};
+
+	// Process all filtered events
+	for (const yearKey in _filteredEvents) {
+		const eventsInYear = _filteredEvents[yearKey];
+
+		for (const event of eventsInYear) {
+			// Process locations
+			if (event.locations && event.locations.length > 0) {
+				for (const loc of event.locations) {
+					const locationId = String(loc.location);
+					if (!stats.location[locationId]) {
+						stats.location[locationId] = {
+							count: 0,
+							color: ''
+						};
+					}
+					stats.location[locationId].count++;
+				}
+			}
+
+			// Process performances (works, composers, persons)
+			if (event.performances && event.performances.length > 0) {
+				for (const performance of event.performances) {
+					// Works
+					if (performance.work) {
+						const workId = String(performance.work);
+						if (!stats.work[workId]) {
+							stats.work[workId] = {
+								count: 0,
+								color: ''
+							};
+						}
+						stats.work[workId].count++;
+					}
+
+					// Composers
+					if (performance.composers && performance.composers.length > 0) {
+						for (const composer of performance.composers) {
+							const composerId = String(composer.person);
+							if (!stats.composer[composerId]) {
+								stats.composer[composerId] = {
+									count: 0,
+									color: ''
+								};
+							}
+							stats.composer[composerId].count++;
+						}
+					}
+
+					// Persons in performances
+					if (performance.persons && performance.persons.length > 0) {
+						for (const person of performance.persons) {
+							const personId = String(person.person);
+							if (!stats.person[personId]) {
+								stats.person[personId] = {
+									count: 0,
+									color: ''
+								};
+							}
+							stats.person[personId].count++;
+						}
+					}
+				}
+			}
+
+			// Process persons at event level
+			if (event.persons && event.persons.length > 0) {
+				for (const person of event.persons) {
+					const personId = String(person.person);
+					if (!stats.person[personId]) {
+						stats.person[personId] = {
+							count: 0,
+							color: ''
+						};
+					}
+					stats.person[personId].count++;
+				}
+			}
+		}
+	}
+
+	// Assign colors to the most frequent items
+	const assignColors = (category: keyof Statistics) => {
+		const items = Object.entries(stats[category])
+			.sort((a, b) => b[1].count - a[1].count)
+			.slice(0, 12); // Limit to top 12 items
+
+		let _colorFilters = [...get(colorFilters)];
+
+		items.forEach((item, index) => {
+			if (_colorFilters.length > index) {
+				item[1].color = _colorFilters[index];
+			}
+		});
+	};
+
+	// Assign colors to each category
+	assignColors('location');
+	assignColors('work');
+	assignColors('composer');
+	assignColors('person');
+
+	// Update the statistic store
+	statistic.set(stats);
+
+	return stats;
+}
 
 const updateSelectedMethodFilter = (method: Method) => {
 	selectedMethodFilter.set(method);
@@ -413,5 +532,7 @@ export {
 	showEventAsModal,
 	updateEntitiesForSearchBox,
 	updateSelectedMethodFilter,
-	urlifyerFilters
+	urlifyerFilters,
+	statistic,
+	buildStatistics
 };

@@ -8,9 +8,12 @@
 		dataForLineGraph
 	} from '$databaseMusiconn/stores/storeGraph';
 	import GraphSelector from '$databaseMusiconn/components/graphs/GraphSelector.svelte';
-	import Map from '$databaseMusiconn/components/graphs/map/Maps.svelte';
 	import MapPMTiles from '$databaseMusiconn/components/graphs/map/MapPMTiles.svelte';
-	import { filteredEvents } from '$databaseMusiconn/stores/storeFilters';
+	import {
+		filteredEvents,
+		statistic,
+		buildStatistics
+	} from '$databaseMusiconn/stores/storeFilters';
 	import { getGeometries, getTitle, getTitleString } from '$databaseMusiconn/stores/storeEvents';
 	import { onMount } from 'svelte';
 
@@ -61,6 +64,7 @@
 
 	$effect(() => {
 		updateLocations($filteredEvents);
+		console.log(buildStatistics());
 	});
 
 	onMount(() => {

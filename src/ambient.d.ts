@@ -8,6 +8,15 @@ type MuensterEventsAndChildLocation = {
 	};
 };
 
+type Statistics = {
+	[key: string]: {
+		[key: string]: {
+			count: number;
+			color: string;
+		};
+	}
+}
+
 type LocationInfo = {
 	uid: string;
 	title: string;
