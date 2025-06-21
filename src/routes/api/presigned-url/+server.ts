@@ -1,46 +1,18 @@
 import { Client } from 'minio';
 import { error, json } from '@sveltejs/kit';
 import { config } from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { readFileSync } from 'fs';
+import { MINIO_ACCESS_KEY, MINIO_ENDPOINT, MINIO_PORT, MINIO_SECRET_KEY, MINIO_USE_SSL } from '$env/static/private';
 
-// Load environment variables from .env and .env.dev if available
+// Load environment variables from .env file
 config();
-
-// Try to load from .env.dev if available
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const projectRoot = join(__dirname, '../../../../');
-try {
-    const envDevPath = join(projectRoot, '.env.dev');
-    const envContent = readFileSync(envDevPath, 'utf8');
-    const envVars = envContent.split('\n').reduce<Record<string, string>>((acc, line) => {
-        if (line && !line.startsWith('#')) {
-            const [key, value] = line.split('=');
-            if (key && value) {
-                acc[key.trim()] = value.trim();
-            }
-        }
-        return acc;
-    }, {});
-
-    Object.entries(envVars).forEach(([key, value]) => {
-        if (key && !process.env[key]) {
-            process.env[key] = value;
-        }
-    });
-} catch (err) {
-    console.warn('No .env.dev file found, using default environment variables');
-}
 
 // Initialize Minio client with environment variables
 const minioClient = new Client({
-    endPoint: process.env.MINIO_ENDPOINT || 'minio-y8sgkwgsc0wogosk4gc844kk.francesco-bruno.com',
-    port: parseInt(process.env.MINIO_PORT || '443'),
-    useSSL: process.env.MINIO_USE_SSL !== 'false',
-    accessKey: process.env.MINIO_ACCESS_KEY || '',
-    secretKey: process.env.MINIO_SECRET_KEY || ''
+    endPoint: MINIO_ENDPOINT || 'minio-y8sgkwgsc0wogosk4gc844kk.francesco-bruno.com',
+    port: parseInt(MINIO_PORT || '443'),
+    useSSL: MINIO_USE_SSL !== 'false',
+    accessKey: MINIO_ACCESS_KEY || '',
+    secretKey: MINIO_SECRET_KEY || ''
 });
 
 export async function GET({ url }: { url: URL }) {
