@@ -109,14 +109,6 @@
 			{/if}
 		{:else if $selectedGraphType === 'map'}
 			{#if allLocations.length > 0}
-				<Map data={allLocations} />
-			{:else}
-				<div
-					class="bg-secondary dark:bg-dark-secondary flex h-[300px] w-11/12 max-w-3xl animate-pulse items-center justify-center rounded-xl"
-				></div>
-			{/if}
-		{:else if $selectedGraphType === 'map-pmtiles'}
-			{#if allLocations.length > 0}
 				<MapPMTiles data={allLocations} />
 			{:else}
 				<div

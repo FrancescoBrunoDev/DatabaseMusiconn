@@ -17,6 +17,8 @@
 	let map: maplibregl.Map;
 	// Track hovered point ID to show/hide labels
 	let hoveredPointId: string | null = null;
+	// Store DOM elements for custom labels
+	let labelMarkers: Record<string, HTMLDivElement> = {};
 
 	let width = $state(800);
 	let height = $state(300);
@@ -76,6 +78,8 @@
 			// Create a style using the GRAYSCALE flavor and our PMTiles source
 			const style: maplibregl.StyleSpecification = {
 				version: 8 as 8,
+				// You can replace this with your own font stack URL
+				// Format should be: 'https://your-server.com/fonts/{fontstack}/{range}.pbf'
 				glyphs: 'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
 				sources: {
 					protomaps: {
@@ -160,6 +164,26 @@
 					} as any);
 
 					// Add text label layer (initially invisible)
+					// Create a CSS-styled label instead of using MapLibre built-in labels
+					// This allows us to use our custom Google Font
+					const labelElement = document.createElement('div');
+					labelElement.className = 'map-label';
+					labelElement.textContent = point.name.split(' ').slice(0, 3).join(' ');
+					labelElement.style.display = 'none'; // Initially hidden
+
+					// Use our marker as a DOM element that will use our app's fonts
+					new maplibregl.Marker({
+						element: labelElement,
+						anchor: 'left',
+						offset: [8, 0]
+					})
+						.setLngLat(point.coordinates as [number, number])
+						.addTo(map);
+
+					// Store reference to customize later
+					labelMarkers[pointId] = labelElement;
+
+					// Add text layer (as fallback - will be invisible)
 					map.addLayer({
 						id: labelId,
 						type: 'symbol',
@@ -167,17 +191,11 @@
 						layout: {
 							'text-field': ['get', 'name'],
 							'text-font': ['Noto Sans Regular'],
-							'text-size': 14,
-							'text-offset': [1, 0],
-							'text-anchor': 'left',
-							'text-max-width': 12,
-							'text-allow-overlap': true,
-							'text-ignore-placement': true,
-							'text-padding': 1,
-							visibility: 'none' // Initially hidden
+							'text-size': 0, // Size zero to be invisible
+							visibility: 'none'
 						},
 						paint: {
-							'text-color': '#000000' // Simple black text
+							'text-color': '#000000'
 						}
 					});
 
@@ -185,13 +203,19 @@
 					map.on('mouseenter', pointId, () => {
 						map.getCanvas().style.cursor = 'pointer';
 						hoveredPointId = pointId;
-						map.setLayoutProperty(labelId, 'visibility', 'visible');
+						// Show the DOM label instead of changing layout property
+						if (labelMarkers && labelMarkers[pointId]) {
+							labelMarkers[pointId].style.display = 'block';
+						}
 					});
 
 					map.on('mouseleave', pointId, () => {
 						map.getCanvas().style.cursor = '';
 						hoveredPointId = null;
-						map.setLayoutProperty(labelId, 'visibility', 'none');
+						// Hide the DOM label
+						if (labelMarkers && labelMarkers[pointId]) {
+							labelMarkers[pointId].style.display = 'none';
+						}
 					});
 				});
 
@@ -233,13 +257,17 @@
 	style="height: {height}px;"
 >
 	{#if isLoading}
-		<div class="loading-overlay flex items-center justify-center">
+		<div
+			class="absolute top-0 left-0 w-full h-full z-10 bg-background flex items-center justify-center"
+		>
 			<div class="loader-spinner"></div>
 		</div>
 	{/if}
 
 	{#if loadError}
-		<div class="error-overlay flex items-center justify-center text-center p-4">
+		<div
+			class="absolute top-0 left-0 w-full h-full z-10 bg-background flex items-center justify-center text-center p-4"
+		>
 			<p class="text-red-600 font-medium">{loadError}</p>
 		</div>
 	{/if}
@@ -248,22 +276,8 @@
 </div>
 
 <style>
+	@reference '$tailwind';
 	/* Simple styling for the map container */
-	div {
-		background-color: #f8f8f8;
-		position: relative;
-	}
-
-	.loading-overlay,
-	.error-overlay {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		z-index: 10;
-		background-color: rgba(255, 255, 255, 0.8);
-	}
 
 	.loader-spinner {
 		width: 40px;
@@ -278,5 +292,11 @@
 		to {
 			transform: rotate(360deg);
 		}
+	}
+
+	/* Custom styling for map labels */
+	:global(.map-label) {
+		@apply bg-background text-text rounded-xl px-2 py-1 text-sm whitespace-nowrap drop-shadow-2xl;
+		font-family: 'Outfit', sans-serif; /* Using your Google Font */
 	}
 </style>
