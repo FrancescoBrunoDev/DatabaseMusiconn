@@ -4,8 +4,8 @@
 	import Selector from '$databaseMusiconn/components/ui/Selector.svelte';
 
 	// make the options with $LL.graphs it should be an array of objects with label and value
-	let options = ['line', 'map'].map((option) => ({
-		label: $LL.graphs[option as 'line' | 'map'](),
+	let options = ['line', 'map', 'pie'].map((option) => ({
+		label: $LL.graphs[option as 'line' | 'map' | 'pie']?.() ?? option,
 		value: option
 	}));
 </script>

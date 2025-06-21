@@ -6,7 +6,7 @@ import { endYear, fetchedEvents, startYear } from '$databaseMusiconn/stores/stor
 import { filteredEvents, filters } from '$databaseMusiconn/stores/storeFilters';
 import osmtogeojson from 'osmtogeojson';
 
-const selectedGraphType = persistStore<'line' | 'map'>('selectedGraphType', 'line');
+const selectedGraphType = persistStore<'line' | 'map' | 'pie'>('selectedGraphType', 'line');
 const JSONMuenster = persistStore<any>('JSONMuenster', {});
 const dataForLineGraph = writable<DataSeries[]>([]);
 

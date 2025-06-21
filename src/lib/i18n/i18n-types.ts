@@ -91,6 +91,10 @@ type RootTranslation = {
 		 * M​a​p
 		 */
 		map: string
+		/**
+		 * P​i​e
+		 */
+		pie: string
 	}
 	events: {
 		/**
@@ -228,6 +232,10 @@ export type TranslationFunctions = {
 		 * Map
 		 */
 		map: () => LocalizedString
+		/**
+		 * Pie
+		 */
+		pie: () => LocalizedString
 	}
 	events: {
 		/**

@@ -9,6 +9,7 @@
 	} from '$databaseMusiconn/stores/storeGraph';
 	import GraphSelector from '$databaseMusiconn/components/graphs/GraphSelector.svelte';
 	import MapPMTiles from '$databaseMusiconn/components/graphs/map/MapPMTiles.svelte';
+	import PieChartContainer from '$databaseMusiconn/components/graphs/pie/PieChartContainer.svelte';
 	import {
 		filteredEvents,
 		statistic,
@@ -64,7 +65,7 @@
 
 	$effect(() => {
 		updateLocations($filteredEvents);
-		console.log(buildStatistics());
+		buildStatistics();
 	});
 
 	onMount(() => {
@@ -119,6 +120,10 @@
 					class="bg-secondary dark:bg-dark-secondary flex h-[300px] w-11/12 max-w-3xl animate-pulse items-center justify-center rounded-xl"
 				></div>
 			{/if}
+		{:else if $selectedGraphType === 'pie'}
+			<div class="flex h-[300px] w-11/12 max-w-3xl items-center justify-center rounded-xl">
+				<PieChartContainer />
+			</div>
 		{/if}
 	</div>
 	<div class="mt-4 flex w-full justify-center">

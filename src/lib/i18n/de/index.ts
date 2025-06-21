@@ -28,6 +28,7 @@ const de = {
 	graphs: {
 		line: 'Linie',
 		map: 'Karte',
+		pie: 'Kreisdiagramm'
 	},
 	events: {
 		showAllPerformances: 'Zeige alle Aufführungen',
