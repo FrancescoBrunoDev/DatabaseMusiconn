@@ -37,7 +37,7 @@
 	const personData = $derived(prepareChartData('person'));
 </script>
 
-<div class="flex overflow-scroll w-full justify-center gap-4">
+<div class="flex overflow-scroll w-full justify-between gap-4">
 	<PieChart data={locationData} title={getEntityName('location')} width={150} height={150} />
 	<PieChart data={workData} title={getEntityName('work')} width={150} height={150} />
 	<PieChart data={composerData} title={getEntityName('composer')} width={150} height={150} />

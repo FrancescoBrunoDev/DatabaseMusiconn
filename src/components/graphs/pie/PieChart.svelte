@@ -115,10 +115,10 @@
 </script>
 
 <div class="relative">
-	<div class="text-center font-bold mb-1 text-sm">{title}</div>
 	<svg bind:this={svg} {width} {height}>
 		<g bind:this={chartArea} transform={`translate(0, 0)`}></g>
 	</svg>
+	<div class="text-center font-bold mb-1 text-sm">{title}</div>
 
 	{#if tooltipVisible}
 		<div

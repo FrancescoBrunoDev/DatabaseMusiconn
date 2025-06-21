@@ -121,7 +121,9 @@
 				></div>
 			{/if}
 		{:else if $selectedGraphType === 'pie'}
-			<div class="flex h-[300px] w-11/12 max-w-3xl items-center justify-center rounded-xl">
+			<div
+				class="flex h-[300px] w-11/12 max-w-3xl items-center justify-center rounded-xl border-border border-2 p-4"
+			>
 				<PieChartContainer />
 			</div>
 		{/if}
