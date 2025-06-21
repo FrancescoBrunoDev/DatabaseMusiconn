@@ -20,7 +20,7 @@ export async function GET({ url }: { url: URL }) {
         // Get parameters from URL
         const bucket = url.searchParams.get('bucket') || 'protomaps';
         const objectName = url.searchParams.get('object') || '20250620.pmtiles';
-        const expirySeconds = parseInt(url.searchParams.get('expiry') || '3600'); // Default 1 hour
+        const expirySeconds = parseInt(url.searchParams.get('expiry') || '300'); // Default 5 minutes
 
         // Generate a presigned URL for temporary access
         const presignedUrl = await minioClient.presignedGetObject(
