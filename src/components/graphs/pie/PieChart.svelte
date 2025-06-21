@@ -238,7 +238,7 @@
 	}
 </script>
 
-<div class="">
+<div class="snap-center min-w-full flex flex-col items-center justify-center">
 	<svg bind:this={svg} width={svgWidth} height={svgHeight}>
 		<g bind:this={chartArea} transform={`translate(0, 0)`}></g>
 		<g bind:this={labelsGroup} transform={`translate(0, 0)`}></g>
