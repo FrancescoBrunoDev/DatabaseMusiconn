@@ -43,7 +43,7 @@ const fetchWithRetry = async (url: string, retries = 3, delay = 1000, timeout = 
 export async function getLocationInfo(mainLocationID: number): Promise<LocationInfo> {
 	try {
 		const response = await fetchWithRetry(
-			`${urlBaseAPIMusiconn}?action=get&location=${mainLocationID}&format=json`
+			`${urlBaseAPIMusiconn}?action=get&location=${mainLocationID}&props=uid|title|slug|categories|geometries|childs|parents&format=json`
 		);
 		return response.location[mainLocationID];
 	} catch (error) {

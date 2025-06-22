@@ -19,23 +19,30 @@
 	let hoveredPointId: string | null = null;
 	// Store DOM elements for custom labels
 	let labelMarkers: Record<string, HTMLDivElement> = {};
+	// Track added point sources and layers for cleanup
+	let addedSources: string[] = [];
+	let addedLayers: string[] = [];
 
 	let width = $state(800);
 	let height = $state(300);
 
 	// Calculate center point from data, similar to Maps.svelte
-	const validPoints = data
-		.filter((d: { geometries: { geo: any }[] }) => d.geometries?.[0]?.geo)
-		.map((d: { geometries: { geo: any }[] }) => d.geometries[0].geo);
+	const validPoints = $derived(
+		data
+			.filter((d: { geometries: { geo: any }[] }) => d.geometries?.[0]?.geo)
+			.map((d: { geometries: { geo: any }[] }) => d.geometries[0].geo)
+	);
 
-	const centerPoint = validPoints.reduce(
-		(acc: { lat: number; lng: number }, curr: number[]) => {
-			return {
-				lat: acc.lat + curr[0] / validPoints.length,
-				lng: acc.lng + curr[1] / validPoints.length
-			};
-		},
-		{ lat: 0, lng: 0 }
+	const centerPoint = $derived(
+		validPoints.reduce(
+			(acc: { lat: number; lng: number }, curr: number[]) => {
+				return {
+					lat: acc.lat + curr[0] / validPoints.length,
+					lng: acc.lng + curr[1] / validPoints.length
+				};
+			},
+			{ lat: 0, lng: 0 }
+		)
 	);
 
 	// Set up PMTiles protocol
@@ -48,6 +55,7 @@
 	// State to track loading and error status
 	let isLoading = $state(true);
 	let loadError = $state<string | null>(null);
+	let mapInitialized = $state(false);
 
 	// Fetch presigned URL for PMTiles file
 	async function getPresignedUrl() {
@@ -67,7 +75,10 @@
 		}
 	}
 
-	onMount(async () => {
+	// Initialize map with base layers
+	async function initializeMap() {
+		if (mapInitialized || !mapContainer) return;
+
 		const protocol = setupPMTilesProtocol();
 		isLoading = true;
 
@@ -78,8 +89,6 @@
 			// Create a style using the GRAYSCALE flavor and our PMTiles source
 			const style: maplibregl.StyleSpecification = {
 				version: 8 as 8,
-				// You can replace this with your own font stack URL
-				// Format should be: 'https://your-server.com/fonts/{fontstack}/{range}.pbf'
 				glyphs: 'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
 				sources: {
 					protomaps: {
@@ -107,126 +116,8 @@
 
 			// After the map loads, add markers for data points
 			map.on('load', () => {
-				// Use the already calculated valid points and enrich them with name
-				const pointsWithNames = data
-					.filter((d) => d.geometries?.[0]?.geo)
-					.map((d) => ({
-						name: d.name,
-						coordinates: [d.geometries[0].geo[1], d.geometries[0].geo[0]] // [lng, lat]
-					}));
-
-				// Add each point as a simple black dot with a label
-				pointsWithNames.forEach((point) => {
-					// Create a custom black dot marker using a layer
-					const pointId = `point-${point.name.replace(/\s+/g, '-').toLowerCase()}`;
-					const labelId = `label-${pointId}`;
-
-					// Add a simple black dot as a circle layer with source
-					const pointSource = {
-						type: 'geojson',
-						data: {
-							type: 'Feature',
-							properties: {},
-							geometry: {
-								type: 'Point',
-								coordinates: point.coordinates
-							}
-						}
-					};
-
-					map.addSource(pointId, pointSource as any);
-
-					// Add point layer
-					map.addLayer({
-						id: pointId,
-						type: 'circle',
-						source: pointId,
-						paint: {
-							'circle-radius': 6,
-							'circle-color': '#000000', // Simple black dot
-							'circle-stroke-width': 0
-						}
-					});
-
-					// Add text label source
-					map.addSource(labelId, {
-						type: 'geojson',
-						data: {
-							type: 'Feature',
-							properties: {
-								name: point.name.split(' ').slice(0, 3).join(' ')
-							},
-							geometry: {
-								type: 'Point',
-								coordinates: point.coordinates
-							}
-						}
-					} as any);
-
-					// Add text label layer (initially invisible)
-					// Create a CSS-styled label instead of using MapLibre built-in labels
-					// This allows us to use our custom Google Font
-					const labelElement = document.createElement('div');
-					labelElement.className = 'map-label';
-					labelElement.textContent = point.name.split(' ').slice(0, 3).join(' ');
-					labelElement.style.display = 'none'; // Initially hidden
-
-					// Use our marker as a DOM element that will use our app's fonts
-					new maplibregl.Marker({
-						element: labelElement,
-						anchor: 'left',
-						offset: [8, 0]
-					})
-						.setLngLat(point.coordinates as [number, number])
-						.addTo(map);
-
-					// Store reference to customize later
-					labelMarkers[pointId] = labelElement;
-
-					// Add text layer (as fallback - will be invisible)
-					map.addLayer({
-						id: labelId,
-						type: 'symbol',
-						source: labelId,
-						layout: {
-							'text-field': ['get', 'name'],
-							'text-font': ['Noto Sans Regular'],
-							'text-size': 0, // Size zero to be invisible
-							visibility: 'none'
-						},
-						paint: {
-							'text-color': '#000000'
-						}
-					});
-
-					// Add hover events for this point
-					map.on('mouseenter', pointId, () => {
-						hoveredPointId = pointId;
-						// Show the DOM label instead of changing layout property
-						if (labelMarkers && labelMarkers[pointId]) {
-							labelMarkers[pointId].style.display = 'block';
-						}
-					});
-
-					map.on('mouseleave', pointId, () => {
-						hoveredPointId = null;
-						// Hide the DOM label
-						if (labelMarkers && labelMarkers[pointId]) {
-							labelMarkers[pointId].style.display = 'none';
-						}
-					});
-				});
-
-				// Fit bounds to include all markers if we have valid points
-				if (pointsWithNames.length > 0) {
-					const bounds = new maplibregl.LngLatBounds();
-					pointsWithNames.forEach((point) => {
-						bounds.extend(point.coordinates as [number, number]);
-					});
-					map.fitBounds(bounds, { padding: 50 });
-				}
-
-				isLoading = false;
+				mapInitialized = true;
+				updateMapData();
 			});
 
 			// Handle map errors
@@ -240,10 +131,177 @@
 			loadError = err instanceof Error ? err.message : 'Failed to initialize map';
 			isLoading = false;
 		}
+	}
+
+	// Update map with new data points
+	function updateMapData() {
+		if (!map || !mapInitialized) return;
+
+		// Clean up previous markers
+		cleanupPreviousData();
+
+		// Use the already calculated valid points and enrich them with name
+		const pointsWithNames = data
+			.filter((d) => d.geometries?.[0]?.geo)
+			.map((d) => ({
+				name: d.name,
+				coordinates: [d.geometries[0].geo[1], d.geometries[0].geo[0]] // [lng, lat]
+			}));
+
+		// Add each point as a simple black dot with a label
+		pointsWithNames.forEach((point) => {
+			// Create a unique ID for this point
+			const pointId = `point-${point.name.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`;
+			const labelId = `label-${pointId}`;
+
+			// Track added sources and layers for later cleanup
+			addedSources.push(pointId, labelId);
+			addedLayers.push(pointId, labelId);
+
+			// Add a simple black dot as a circle layer with source
+			const pointSource = {
+				type: 'geojson',
+				data: {
+					type: 'Feature',
+					properties: {},
+					geometry: {
+						type: 'Point',
+						coordinates: point.coordinates
+					}
+				}
+			};
+
+			map.addSource(pointId, pointSource as any);
+
+			// Add point layer
+			map.addLayer({
+				id: pointId,
+				type: 'circle',
+				source: pointId,
+				paint: {
+					'circle-radius': 6,
+					'circle-color': '#000000', // Simple black dot
+					'circle-stroke-width': 0
+				}
+			});
+
+			// Add text label source
+			map.addSource(labelId, {
+				type: 'geojson',
+				data: {
+					type: 'Feature',
+					properties: {
+						name: point.name.split(' ').slice(0, 3).join(' ')
+					},
+					geometry: {
+						type: 'Point',
+						coordinates: point.coordinates
+					}
+				}
+			} as any);
+
+			// Add text label layer (initially invisible)
+			// Create a CSS-styled label instead of using MapLibre built-in labels
+			const labelElement = document.createElement('div');
+			labelElement.className = 'map-label';
+			labelElement.textContent = point.name.split(' ').slice(0, 3).join(' ');
+			labelElement.style.display = 'none'; // Initially hidden
+
+			// Store reference to customize later
+			labelMarkers[pointId] = labelElement;
+
+			// Add text layer (as fallback - will be invisible)
+			map.addLayer({
+				id: labelId,
+				type: 'symbol',
+				source: labelId,
+				layout: {
+					'text-field': ['get', 'name'],
+					'text-font': ['Noto Sans Regular'],
+					'text-size': 0, // Size zero to be invisible
+					visibility: 'none'
+				},
+				paint: {
+					'text-color': '#000000'
+				}
+			});
+
+			// Add hover events for this point
+			map.on('mouseenter', pointId, () => {
+				hoveredPointId = pointId;
+				// Show the DOM label instead of changing layout property
+				if (labelMarkers && labelMarkers[pointId]) {
+					labelMarkers[pointId].style.display = 'block';
+				}
+			});
+
+			map.on('mouseleave', pointId, () => {
+				hoveredPointId = null;
+				// Hide the DOM label
+				if (labelMarkers && labelMarkers[pointId]) {
+					labelMarkers[pointId].style.display = 'none';
+				}
+			});
+		});
+
+		// Fit bounds to include all markers if we have valid points
+		if (pointsWithNames.length > 0) {
+			const bounds = new maplibregl.LngLatBounds();
+			pointsWithNames.forEach((point) => {
+				bounds.extend(point.coordinates as [number, number]);
+			});
+			map.fitBounds(bounds, { padding: 50 });
+		}
+
+		isLoading = false;
+	}
+
+	// Clean up previous data layers, sources, and markers
+	function cleanupPreviousData() {
+		// Remove previous layers
+		addedLayers.forEach((layerId) => {
+			if (map.getLayer(layerId)) {
+				map.removeLayer(layerId);
+			}
+		});
+
+		// Remove previous sources
+		addedSources.forEach((sourceId) => {
+			if (map.getSource(sourceId)) {
+				map.removeSource(sourceId);
+			}
+		});
+
+		// Remove previous markers
+		Object.keys(labelMarkers).forEach((markerId) => {
+			// The actual marker removal happens automatically when layers are removed
+			delete labelMarkers[markerId];
+		});
+
+		// Reset tracking arrays
+		addedLayers = [];
+		addedSources = [];
+		labelMarkers = {};
+	}
+
+	// Initialize map on mount
+	onMount(async () => {
+		await initializeMap();
+	});
+
+	// Watch for data changes and update the map
+	$effect(() => {
+		// Using data in the effect makes it automatically track this dependency
+		if (mapInitialized && map && data) {
+			updateMapData();
+		}
 	});
 
 	onDestroy(() => {
-		if (map) map.remove();
+		if (map) {
+			cleanupPreviousData();
+			map.remove();
+		}
 	});
 </script>
 

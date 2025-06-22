@@ -11,7 +11,7 @@
 	<div class="sticky top-10 right-0 z-40 flex justify-between sm:top-16">
 		<div><MainLocationInfo /></div>
 		<div
-			class="bg-background dark:bg-dark-background flex scale-90 gap-2 rounded-xl border-2 p-2 drop-shadow-xl sm:scale-100"
+			class="bg-background dark:bg-dark-background h-fit flex scale-90 gap-2 rounded-xl border-2 p-2 drop-shadow-xl sm:scale-100"
 		>
 			<SettingsDatabase />
 		</div>

@@ -26,11 +26,27 @@ type LocationInfo = {
 			label: number;
 		}
 	];
-	descritions: [
+	descritions?: [
 		{
 			descrition: string;
 		}
 	];
+	childs?: [{
+		location: number
+	}]
+	parents?: [{
+		location: number
+	}]
+	geometries?: [{
+		geo: [number, number];
+		label: number;
+	}]
+};
+
+type LocationTreeNode = {
+	id: string;
+	title: string;
+	child?: LocationTreeNode;
 };
 
 type DataRecordChart = [
