@@ -6,9 +6,17 @@
 	import { setLocale } from '$lib/i18n/i18n-svelte';
 	import { loadLocaleAsync } from '$lib/i18n/i18n-util.async';
 	import { locale } from '$states/stateGeneral.svelte';
+	import NavBar from '$databaseMusiconn/components/layout/NavBar.svelte';
 
 	let value: Locales = $state('en');
 	let { children } = $props();
+
+	async function handleLocaleChange() {
+		value = value === 'en' ? 'de' : 'en';
+		await loadLocaleAsync(value);
+		setLocale(value);
+		locale.current = value;
+	}
 
 	onMount(async () => {
 		const valueFromSession = locale.current || 'en';
@@ -28,6 +36,7 @@
 	setFirstThemeData();
 </script>
 
+<NavBar {value} {handleLocaleChange} />
 {@render children?.()}
 
 <style lang="postcss">

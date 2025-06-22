@@ -33,7 +33,7 @@
 
 {#if $mainLocationInfo?.title}
 	<div
-		class="bg-background flex-col dark:bg-dark-background flex scale-90 gap-1 rounded-xl border-2 p-2 drop-shadow-xl sm:scale-100"
+		class="bg-border/50 dark:bg-dark-border/50 backdrop-blur-lg flex-col flex scale-90 gap-1 rounded-xl p-2 sm:scale-100"
 	>
 		<span class="text-lg font-bold">{$mainLocationInfo.title} </span>
 		<span class="text-xs"
