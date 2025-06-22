@@ -31,16 +31,22 @@ type LocationInfo = {
 			descrition: string;
 		}
 	];
-	childs?: [{
-		location: number
-	}]
-	parents?: [{
-		location: number
-	}]
-	geometries?: [{
-		geo: [number, number];
-		label: number;
-	}]
+	childs?: [
+		{
+			location: number;
+		}
+	];
+	parents?: [
+		{
+			location: number;
+		}
+	];
+	geometries?: [
+		{
+			geo: [number, number];
+			label: number;
+		}
+	];
 };
 
 type LocationTreeNode = {

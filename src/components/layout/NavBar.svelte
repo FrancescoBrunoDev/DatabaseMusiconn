@@ -9,10 +9,10 @@
 	const { value, handleLocaleChange } = $props<{ value: Locales; handleLocaleChange: any }>();
 </script>
 
-<div class="fixed top-3 inset-x-0 z-40 flex h-10 items-center justify-center">
+<div class="fixed inset-x-0 top-3 z-40 flex h-10 items-center justify-center">
 	<div class="container">
 		<div
-			class="bg-border/50 dark:bg-dark-border/50 rounded-xl w-full flex justify-between text-lg p-2 backdrop-blur-lg"
+			class="bg-border/50 dark:bg-dark-border/50 flex w-full justify-between rounded-xl p-2 text-lg backdrop-blur-lg"
 		>
 			<ul class="flex items-center">
 				{#if !isHomePage}
