@@ -22,7 +22,7 @@
 
 	// Pattern parameters with more variations
 	const basePhase = 0;
-	const baseAmplitude = 20;
+	const baseAmplitude = 1000;
 	const baseFrequency = 0.015;
 
 	// Arrays for variations in the pattern
