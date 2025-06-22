@@ -3,9 +3,15 @@
 	import ListeEvents from '$databaseMusiconn/components/listEvents/ListEvents.svelte';
 	import SettingsDatabase from '$databaseMusiconn/components/listEvents/SettingsDatabase.svelte';
 	import MainLocationInfo from '$databaseMusiconn/components/listEvents/MainLocationInfo.svelte';
+	import { mainLocationInfo } from '$databaseMusiconn/stores/storeEvents';
 
 	let { children } = $props();
 </script>
+
+<svelte:head>
+	<title>SoundTrails: {$mainLocationInfo?.title}</title>
+	<meta name="description" content="SoundTrails: {$mainLocationInfo?.title}" />
+</svelte:head>
 
 <section class="isolate container">
 	<div class="sticky top-16 inset-0 z-40 flex justify-between sm:top-18">
