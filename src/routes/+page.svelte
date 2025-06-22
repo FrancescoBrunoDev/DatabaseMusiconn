@@ -36,7 +36,7 @@
 		<div
 			class="bg-background/20 dark:bg-dark-border/50 absolute inset-x-0 top-20 mx-auto w-fit max-w-2xl flex-col items-center justify-center rounded-xl p-4 backdrop-blur-lg md:static md:flex md:w-full md:p-6"
 		>
-			<div class="mb:px-6 max-w-full text-center md:mb-8">
+			<div class="mb:px-6 max-w-full text-center">
 				<h1 class="mb:mb-4 text-5xl font-bold sm:text-8xl">
 					<span class="">SoundTrails</span>
 				</h1>
@@ -66,7 +66,7 @@
 		<div
 			class="bg-background/20 dark:bg-dark-border/50 flex w-full max-w-2xl flex-col items-center justify-center rounded-xl p-6 backdrop-blur-lg"
 		>
-			<div class="mb-8 max-w-full px-6 text-center">
+			<div class="max-w-full px-6 text-center">
 				<div>
 					<h2 class="mb-3 text-2xl font-semibold">Where Music History Lives</h2>
 					<p class="mb-3 text-xl">
