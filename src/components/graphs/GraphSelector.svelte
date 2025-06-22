@@ -10,6 +10,12 @@
 			value: option
 		}))
 	);
+
+	options = [
+		{ label: $LL.graphs.line(), value: 'line' },
+		{ label: $LL.graphs.pie(), value: 'pie' },
+		{ label: $LL.graphs.map(), value: 'map' }
+	];
 </script>
 
 <Selector bind:options bind:active={$selectedGraphType} />
