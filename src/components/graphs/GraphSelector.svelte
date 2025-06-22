@@ -12,4 +12,4 @@
 	);
 </script>
 
-<Selector {options} bind:active={$selectedGraphType} />
+<Selector bind:options bind:active={$selectedGraphType} />

@@ -6,7 +6,7 @@
 		active: string;
 	}
 
-	let { options, active = $bindable() }: Props = $props();
+	let { options = $bindable(), active = $bindable() }: Props = $props();
 </script>
 
 <div class="bg-secondary dark:bg-dark-secondary flex gap-2 rounded-2xl p-1">
