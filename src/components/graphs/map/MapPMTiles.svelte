@@ -331,7 +331,7 @@
 	<div bind:this={mapContainer} style="width: 100%; height: 100%;"></div>
 </div>
 
-<style>
+<style lang="postcss">
 	@reference '$tailwind';
 	/* Simple styling for the map container */
 
