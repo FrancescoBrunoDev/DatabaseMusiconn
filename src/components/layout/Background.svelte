@@ -269,8 +269,8 @@
 		position: fixed;
 		top: 0;
 		left: 0;
-		width: 100vdw;
-		height: 100vdh;
+		width: 100dvw;
+		height: 100dvh;
 		z-index: -10;
 		pointer-events: none;
 	}
