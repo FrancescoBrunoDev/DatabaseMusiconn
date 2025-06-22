@@ -37,6 +37,18 @@ const de = {
 			title: 'Einstellungen',
 			showMoreOptionsOnFilterOver: 'Zeige mehr Optionen bei Filterung',
 			showEventAsModal: 'Zeige Ereignis als Modal'
+		},
+		categories: {
+			labels: {
+				locations: {
+					1: 'Ort',
+					2: "",
+					3: 'Land',
+					5: 'Stadt / Gemeinde',
+					7: "Veranstaltungsort / Gebäude",
+					8: "Veranstaltungsraum / Bühne",
+				}
+			}
 		}
 	},
 	navbar: {

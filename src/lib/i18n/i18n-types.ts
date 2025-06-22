@@ -119,6 +119,33 @@ type RootTranslation = {
 			 */
 			showEventAsModal: string
 		}
+		categories: {
+			labels: {
+				locations: {
+					/**
+					 * L​o​c​a​t​i​o​n
+					 */
+					'1': string
+					'2': string
+					/**
+					 * C​o​u​n​t​r​y
+					 */
+					'3': string
+					/**
+					 * C​i​t​y​ ​/​ ​M​u​n​i​c​i​p​a​l​i​t​y
+					 */
+					'5': string
+					/**
+					 * V​e​n​u​e​ ​/​ ​B​u​i​l​d​i​n​g
+					 */
+					'7': string
+					/**
+					 * E​v​e​n​t​ ​R​o​o​m​ ​/​ ​S​t​a​g​e
+					 */
+					'8': string
+				}
+			}
+		}
 	}
 	navbar: {
 		/**
@@ -259,6 +286,33 @@ export type TranslationFunctions = {
 			 * Show event as modal
 			 */
 			showEventAsModal: () => LocalizedString
+		}
+		categories: {
+			labels: {
+				locations: {
+					/**
+					 * Location
+					 */
+					'1': () => LocalizedString
+					'2': () => LocalizedString
+					/**
+					 * Country
+					 */
+					'3': () => LocalizedString
+					/**
+					 * City / Municipality
+					 */
+					'5': () => LocalizedString
+					/**
+					 * Venue / Building
+					 */
+					'7': () => LocalizedString
+					/**
+					 * Event Room / Stage
+					 */
+					'8': () => LocalizedString
+				}
+			}
 		}
 	}
 	navbar: {

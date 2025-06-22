@@ -1,4 +1,3 @@
-import { map } from 'd3';
 import type { BaseTranslation } from '../i18n-types';
 
 const en = {
@@ -37,6 +36,18 @@ const en = {
 			title: 'Settings',
 			showMoreOptionsOnFilterOver: 'Show more options on filter over',
 			showEventAsModal: 'Show event as modal'
+		},
+		categories: {
+			labels: {
+				locations: {
+					1: 'Location',
+					2: '',
+					3: 'Country',
+					5: 'City / Municipality',
+					7: 'Venue / Building',
+					8: 'Event Room / Stage',
+				}
+			}
 		}
 	},
 	navbar: {
