@@ -7,7 +7,7 @@
 		useBounderiesYears,
 		mainLocationInfo
 	} from '$databaseMusiconn/stores/storeEvents';
-	import { filters } from '$databaseMusiconn/stores/storeFilters';
+	import { filters, entitiesForSearchBox } from '$databaseMusiconn/stores/storeFilters';
 	import { get } from 'svelte/store';
 
 	import type { PageData } from './$types';
@@ -23,6 +23,8 @@
 		or: [],
 		not: []
 	});
+
+	entitiesForSearchBox.set(['person', 'work', 'corporation', 'location']);
 
 	mainLocationInfo.set(data.props.locationInfo);
 

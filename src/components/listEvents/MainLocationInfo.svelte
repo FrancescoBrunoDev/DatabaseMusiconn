@@ -1,34 +1,6 @@
 <script lang="ts">
 	import { mainLocationInfo } from '$databaseMusiconn/stores/storeEvents';
-	import { getTitle, getTitleString } from '$databaseMusiconn/stores/storeEvents';
 	import LL from '$lib/i18n/i18n-svelte';
-
-	async function getParentLocationLabel(): Promise<void> {
-		// for each parent in mainLocationInfo.parents await the title
-		if ($mainLocationInfo?.parents) {
-			for (const parent of $mainLocationInfo.parents) {
-				await getTitle([String(parent)], 'location');
-			}
-		}
-	}
-
-	let parentLocationTitle: string | undefined;
-
-	async function getParentLocationTitle() {
-		if ($mainLocationInfo?.parents?.[0].location) {
-			parentLocationTitle = await getTitleString($mainLocationInfo.parents[0].location, 'location');
-		}
-	}
-
-	$effect(() => {
-		console.log('MainLocationInfo updated:', $mainLocationInfo);
-		if ($mainLocationInfo?.parents?.[0].location) {
-			console.log('Fetching parent location title...', $mainLocationInfo?.parents?.[0].location);
-			getParentLocationTitle();
-		}
-	});
-
-	$inspect(parentLocationTitle);
 </script>
 
 {#if $mainLocationInfo?.title}

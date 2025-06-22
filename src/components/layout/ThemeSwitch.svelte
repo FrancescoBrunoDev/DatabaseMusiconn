@@ -3,6 +3,9 @@
 	import { toggleTheme, themeKind } from '$states/stateGeneral.svelte';
 	import { draw } from 'svelte/transition';
 	import { expoInOut } from 'svelte/easing';
+
+	// Force reactivity by accessing the current theme in a reactive context
+	let theme = $derived(themeKind.current);
 </script>
 
 <Button action={toggleTheme} type="button">
@@ -18,7 +21,7 @@
 		stroke-linejoin="round"
 		class="lucide lucide-sun-medium"
 	>
-		{#if themeKind.current === 'dark'}
+		{#if theme === 'dark'}
 			<path
 				in:draw={{ duration: 1000, easing: expoInOut, delay: 500 }}
 				out:draw={{ duration: 1000, easing: expoInOut }}
