@@ -1,9 +1,9 @@
 <script lang="ts">
-	import LL from '$lib/i18n/i18n-svelte';
 	import ThemeSwitch from '$databaseMusiconn/components/layout/ThemeSwitch.svelte';
 	import { page } from '$app/state';
 	import Button from '$databaseMusiconn/components/ui/Button.svelte';
 	import { cn } from '$databaseMusiconn/lib/utils';
+	import Background from './Background.svelte';
 
 	let isHomePage = $derived(page.url.pathname === '/');
 
@@ -21,7 +21,14 @@
 			)}
 		>
 			{#if !isHomePage}
-				<Button type="button" label="" href="/"><a class="font-bold" href="/">ST</a></Button>
+				<Button type="button" label="" href="/" className="relative overflow-hidden"
+					><Background
+						classCanvas="absolute !h-[100px] !w-[100px]"
+						color="hsl(var(--border))"
+						secondaryColor="hsl(var(--border))"
+						lineCount={20}
+					/></Button
+				>
 			{/if}
 
 			<div class="flex gap-x-2">

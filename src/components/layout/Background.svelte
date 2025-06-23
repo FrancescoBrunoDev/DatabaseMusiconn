@@ -1,18 +1,21 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { cn } from '$lib/utils';
 
 	interface Props {
 		color?: string; // Primary color for the pattern
 		secondaryColor?: string; // Secondary color for the pattern
 		lineCount?: number; // Number of level lines
 		opacity?: number; // Opacity of the lines
+		classCanvas?: string; // Additional classes for the canvas
 	}
 
 	let {
 		color = 'hsl(var(--primary))',
 		secondaryColor = 'hsl(var(--primary))',
 		lineCount = 40,
-		opacity = 1
+		opacity = 1,
+		classCanvas = 'fixed h-[100dvh] w-[100dvw] -z-10 pointer-events-none inset-0'
 	}: Props = $props();
 
 	let canvas: HTMLCanvasElement;
@@ -262,16 +265,4 @@
 	});
 </script>
 
-<canvas bind:this={canvas} class="background-canvas"></canvas>
-
-<style>
-	.background-canvas {
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100dvw;
-		height: 100dvh;
-		z-index: -10;
-		pointer-events: none;
-	}
-</style>
+<canvas bind:this={canvas} class={cn(classCanvas)}></canvas>
