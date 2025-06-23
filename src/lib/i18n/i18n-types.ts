@@ -95,6 +95,10 @@ type RootTranslation = {
 		 * P​i​e
 		 */
 		pie: string
+		/**
+		 * T​a​b​l​e
+		 */
+		tab: string
 	}
 	events: {
 		/**
@@ -263,6 +267,10 @@ export type TranslationFunctions = {
 		 * Pie
 		 */
 		pie: () => LocalizedString
+		/**
+		 * Table
+		 */
+		tab: () => LocalizedString
 	}
 	events: {
 		/**

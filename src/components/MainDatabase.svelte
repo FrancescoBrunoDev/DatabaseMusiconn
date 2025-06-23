@@ -10,6 +10,7 @@
 	import GraphSelector from '$databaseMusiconn/components/graphs/GraphSelector.svelte';
 	import MapPMTiles from '$databaseMusiconn/components/graphs/map/MapPMTiles.svelte';
 	import PieChartContainer from '$databaseMusiconn/components/graphs/pie/PieChartContainer.svelte';
+	import TabViewContainer from '$databaseMusiconn/components/graphs/tab/TabViewContainer.svelte';
 	import {
 		filteredEvents,
 		statistic,
@@ -125,6 +126,12 @@
 				class="border-border flex h-[300px] w-11/12 max-w-3xl items-center justify-center rounded-xl border-2 p-4 pb-0"
 			>
 				<PieChartContainer />
+			</div>
+		{:else if $selectedGraphType === 'tab'}
+			<div
+				class="border-border flex h-[300px] w-11/12 max-w-3xl items-center justify-center rounded-xl border-2 p-4"
+			>
+				<TabViewContainer />
 			</div>
 		{/if}
 	</div>
