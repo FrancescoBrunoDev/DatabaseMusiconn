@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { LL } from '$lib/i18n/i18n-svelte';
+	import { LL } from '$databaseMusiconn/lib/i18n/i18n-svelte';
 
 	interface Props {
 		options: string[];

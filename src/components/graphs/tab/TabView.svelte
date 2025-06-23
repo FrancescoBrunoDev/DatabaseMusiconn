@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { LL } from '$lib/i18n/i18n-svelte';
+	import { LL } from '$databaseMusiconn/lib/i18n/i18n-svelte';
 	import { getTitleString, getTitle } from '$databaseMusiconn/stores/storeEvents';
 	import { fade } from 'svelte/transition';
 	import { getColorForUidAndEntity } from '$databaseMusiconn/stores/storeFilters';
