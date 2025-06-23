@@ -38,7 +38,7 @@ const getTitles = async (event: EventItem) => {
 				const currentTitles = get(allTitles)[kind] || {};
 
 				// Filter UIDs that are not already in the store
-				const missingUids = allUids.filter(uid => {
+				const missingUids = allUids.filter((uid) => {
 					const numUid = Number(uid);
 					return !currentTitles[numUid];
 				});
@@ -50,7 +50,10 @@ const getTitles = async (event: EventItem) => {
 			})
 		);
 	} catch (error) {
-		console.error('An error occurred while fetching titles, I will try to use the stored Titles:', error);
+		console.error(
+			'An error occurred while fetching titles, I will try to use the stored Titles:',
+			error
+		);
 	}
 };
 
@@ -62,7 +65,7 @@ const getTitle = async (allUids: string[], kind: Entity) => {
 
 	// Filter out UIDs that already exist in allTitles store
 	const existingTitles = get(allTitles)[kind] || {};
-	const uidsToFetch = allUids.filter(uid => {
+	const uidsToFetch = allUids.filter((uid) => {
 		const numUid = Number(uid);
 		return !existingTitles[numUid];
 	});

@@ -12,7 +12,7 @@
 <div class="bg-secondary dark:bg-dark-secondary flex gap-2 rounded-2xl p-1">
 	{#each options as option}
 		<button
-			class="text-text dark:text-dark-text px-2 sm:px-4 md:py-1 transition-all"
+			class="text-text dark:text-dark-text px-2 transition-all sm:px-4 md:py-1"
 			class:selected={active === option}
 			onclick={() => (active = option)}
 		>

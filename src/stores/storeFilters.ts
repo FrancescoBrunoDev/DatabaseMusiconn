@@ -152,14 +152,14 @@ const getColorForUidAndEntity = (uid: number, entity: Entity): string | void => 
 	const _filters = get(filters);
 	// this take check if a filter in the same entity exists and return the color of the filter
 	// Check in AND filters
-	const andMatch = _filters.and.find(filter => filter.id === uid && filter.entity === entity);
+	const andMatch = _filters.and.find((filter) => filter.id === uid && filter.entity === entity);
 	if (andMatch && andMatch.color) return andMatch.color;
 	// Check in OR filters
-	const orMatch = _filters.or.find(filter => filter.id === uid && filter.entity === entity);
+	const orMatch = _filters.or.find((filter) => filter.id === uid && filter.entity === entity);
 	if (orMatch && orMatch.color) return orMatch.color;
 
 	// Check in NOT filters
-	const notMatch = _filters.not.find(filter => filter.id === uid && filter.entity === entity);
+	const notMatch = _filters.not.find((filter) => filter.id === uid && filter.entity === entity);
 	if (notMatch && notMatch.color) return notMatch.color;
 
 	// If no match is found, return undefined (which is the return type of void)
@@ -186,20 +186,20 @@ const deUrlifyerFilters = async (filtersUrl: FiltersForUrl) => {
 	const filtersOr =
 		filtersUrl.fo && filtersUrl.fo !== '_'
 			? filtersUrl.fo
-				.split(',')
-				.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
+					.split(',')
+					.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
 			: [];
 	const filtersAnd =
 		filtersUrl.fa && filtersUrl.fa !== '_'
 			? filtersUrl.fa
-				.split(',')
-				.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
+					.split(',')
+					.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
 			: [];
 	const filtersNot =
 		filtersUrl.fn && filtersUrl.fn !== '_'
 			? filtersUrl.fn
-				.split(',')
-				.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
+					.split(',')
+					.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
 			: [];
 
 	function whichEntityIs(entity: string) {
@@ -535,6 +535,7 @@ export {
 	filteredEvents,
 	filters,
 	filtersUrlified,
+	getColorForUidAndEntity,
 	isAFilterDragged,
 	isMoveToActive,
 	makeFilterPersonBothPersonAndComposer,
@@ -545,6 +546,5 @@ export {
 	statistic,
 	updateEntitiesForSearchBox,
 	updateSelectedMethodFilter,
-	urlifyerFilters,
-	getColorForUidAndEntity
+	urlifyerFilters
 };

@@ -155,57 +155,54 @@
 </script>
 
 <div
-	class="flex h-full w-full flex-col overflow-hidden bg-border rounded-lg"
+	class="bg-border flex h-full w-full flex-col overflow-hidden rounded-lg"
 	style="width: {width}px; height: {height}px;"
 >
 	<!-- Tabs navigation -->
-	<div class="flex flex-col gap-2 items-center">
-		<div class="flex gap-2 rounded-b-none rounded-lg p-1 mx-auto w-full justify-center">
-			{#each ['person', 'work', 'corporation', 'composer', 'location'] as tab}
-				<button
-					class="text-text dark:text-dark-text px-4 py-1 transition-all rounded-xl"
-					class:bg-background={activeTab === tab}
-					onclick={() => (activeTab = tab)}
-				>
-					{getEntityName(tab)}
-				</button>
-			{/each}
-		</div>
+
+	<div class="flex w-full justify-center gap-2 overflow-scroll rounded-lg rounded-b-none p-1">
+		{#each ['person', 'work', 'corporation', 'composer', 'location'] as tab}
+			<button
+				class="text-text rounded-xl px-4 py-1 transition-all"
+				class:bg-background={activeTab === tab}
+				onclick={() => (activeTab = tab)}
+			>
+				{getEntityName(tab)}
+			</button>
+		{/each}
 	</div>
 
 	<!-- Tab content (memoized for performance) -->
-	<div class="flex-1 overflow-y-auto bg-background rounded-xl">
+	<div class="bg-background flex-1 overflow-y-auto rounded-xl">
 		{#if isLoading}
 			<div
-				class="flex items-center h-full w-full gap-2 justify-center text-xs text-secondary dark:text-dark-secondary"
+				class="text-secondary flex h-full w-full items-center justify-center gap-2 text-xs"
 				in:fade={{ duration: 200 }}
 			>
-				<span class="h-2 w-2 rounded-full bg-primary animate-pulse"></span>
+				<span class="bg-primary h-2 w-2 animate-pulse rounded-full"></span>
 				<span>Loading titles...</span>
 			</div>
 		{:else}
-			<table
-				class="w-full text-text dark:text-dark-text border-separate border-spacing-y-1 table-fixed p-4 px-6 pt-2"
-			>
+			<table class="text-text w-full table-fixed border-separate border-spacing-y-1 p-4 px-6 pt-2">
 				<!-- Table content -->
 				<tbody>
 					{#if !activeData().length}
 						<tr>
-							<td colspan="2" class="py-8 text-center text-secondary">
+							<td colspan="2" class="text-secondary py-8 text-center">
 								No data available for {getEntityName(activeTab)}
 							</td>
 						</tr>
 					{:else}
 						{#each activeData() as item, i (item.id)}
 							<tr
-								class="hover:bg-secondary/10 dark:hover:bg-dark-secondary/10 transition-colors"
+								class="hover:bg-secondary/10 transition-colors"
 								in:fade={{ duration: 200, delay: 50 * Math.min(5, i) }}
 							>
 								<td
-									class="flex items-center gap-2 rounded-l-lg bg-background/80 dark:bg-dark-background/80 overflow-hidden w-full max-w-[calc(100%-80px)]"
+									class="bg-background/80 flex w-full items-center gap-2 overflow-hidden rounded-l-lg"
 								>
 									<span
-										class="inline-block flex-shrink-0 w-3 h-3 rounded-full"
+										class="inline-block h-3 w-3 flex-shrink-0 rounded-full"
 										style="background-color: {getColorForUidAndEntity(
 											parseInt(item.id),
 											activeTab as Entity
@@ -215,24 +212,24 @@
 									<!-- Using keyed item to prevent unnecessary re-renders -->
 									{#key item.id}
 										{#if loadingStates[item.id]}
-											<div class="flex items-center gap-2 min-w-0 flex-1">
-												<span class="truncate opacity-60 overflow-hidden text-ellipsis"
+											<div class="flex min-w-0 flex-1 items-center gap-2">
+												<span class="truncate overflow-hidden text-ellipsis opacity-60"
 													>Loading {item.id}...</span
 												>
 												<span
-													class="flex-shrink-0 h-2 w-2 rounded-full bg-primary dark:bg-dark-primary animate-pulse"
+													class="bg-primary dark:bg-dark-primary h-2 w-2 flex-shrink-0 animate-pulse rounded-full"
 												></span>
 											</div>
 										{:else}
 											<span
-												class=" overflow-hidden text-ellipsis min-w-0 flex-1"
+												class=" min-w-0 flex-1 overflow-hidden text-ellipsis"
 												title={getEntityTitle(item.id)}>{getEntityTitle(item.id)}</span
 											>
 										{/if}
 									{/key}
 								</td>
 								<td
-									class="text-right font-medium rounded-r-lg bg-background/80 dark:bg-dark-background/80 w-[80px] flex-shrink-0"
+									class="bg-background/80 dark:bg-dark-background/80 w-[80px] flex-shrink-0 rounded-r-lg text-right font-medium"
 								>
 									{item.count}
 								</td>
