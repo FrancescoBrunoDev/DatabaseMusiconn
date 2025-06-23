@@ -11,11 +11,7 @@
 	import MapPMTiles from '$databaseMusiconn/components/graphs/map/MapPMTiles.svelte';
 	import PieChartContainer from '$databaseMusiconn/components/graphs/pie/PieChartContainer.svelte';
 	import TabViewContainer from '$databaseMusiconn/components/graphs/tab/TabViewContainer.svelte';
-	import {
-		filteredEvents,
-		statistic,
-		buildStatistics
-	} from '$databaseMusiconn/stores/storeFilters';
+	import { filteredEvents, buildStatistics } from '$databaseMusiconn/stores/storeFilters';
 	import { getGeometries, getTitle, getTitleString } from '$databaseMusiconn/stores/storeEvents';
 	import { onMount } from 'svelte';
 
@@ -129,7 +125,7 @@
 			</div>
 		{:else if $selectedGraphType === 'tab'}
 			<div
-				class="border-border flex h-[300px] w-11/12 max-w-3xl items-center justify-center rounded-xl border-2 p-4"
+				class="border-border flex h-[300px] w-11/12 max-w-3xl items-center justify-center rounded-xl border-2"
 			>
 				<TabViewContainer />
 			</div>

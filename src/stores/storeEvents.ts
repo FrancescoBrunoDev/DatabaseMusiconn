@@ -33,22 +33,24 @@ const getTitles = async (event: EventItem) => {
 		await Promise.all(
 			uidTypes.map(async (kind) => {
 				const allUids = (await getUidsPerEntity(kind, event)).map((uid: any) => uid.toString());
-				let titlesAlreadyPresent = true;
-				allTitles.subscribe((allTitlesMom) => {
-					const titles = allUids
-						.map((uid: any) => allTitlesMom[kind][uid])
-						.filter((title) => title);
-					if (titles.length !== allUids.length) {
-						titlesAlreadyPresent = false;
-					}
+
+				// Get the current state of allTitles store
+				const currentTitles = get(allTitles)[kind] || {};
+
+				// Filter UIDs that are not already in the store
+				const missingUids = allUids.filter(uid => {
+					const numUid = Number(uid);
+					return !currentTitles[numUid];
 				});
-				if (!titlesAlreadyPresent) {
-					getTitle(allUids, kind);
+
+				// Only fetch titles if there are missing UIDs
+				if (missingUids.length > 0) {
+					await getTitle(missingUids, kind);
 				}
 			})
 		);
 	} catch (error) {
-		console.error('An error occurred while fetching titles, I will try to use the stored Titles:');
+		console.error('An error occurred while fetching titles, I will try to use the stored Titles:', error);
 	}
 };
 
@@ -58,13 +60,25 @@ const getTitle = async (allUids: string[], kind: Entity) => {
 		kindForApi = 'person';
 	}
 
+	// Filter out UIDs that already exist in allTitles store
+	const existingTitles = get(allTitles)[kind] || {};
+	const uidsToFetch = allUids.filter(uid => {
+		const numUid = Number(uid);
+		return !existingTitles[numUid];
+	});
+
+	// If all UIDs are already in the store, return early
+	if (uidsToFetch.length === 0) {
+		return;
+	}
+
 	// Process IDs in batches of 50 to avoid URL length limitations
 	const batchSize = 50;
 	const batches = [];
 
-	// Split all UIDs into batches
-	for (let i = 0; i < allUids.length; i += batchSize) {
-		batches.push(allUids.slice(i, i + batchSize));
+	// Split filtered UIDs into batches
+	for (let i = 0; i < uidsToFetch.length; i += batchSize) {
+		batches.push(uidsToFetch.slice(i, i + batchSize));
 	}
 
 	// Process all batches in parallel
@@ -114,24 +128,28 @@ const getUidsPerEntity = async (kind: Entity, event: EventItem) => {
 
 const getTitleString = (uid: number, kind: Entity): Promise<string> => {
 	return new Promise((resolve, reject) => {
-		let _allTitles: allTitles = {
-			work: {},
-			person: {},
-			location: {},
-			corporation: {},
-			composer: {}
-		};
-		const intervalId = setInterval(() => {
-			allTitles.subscribe((res) => {
-				_allTitles = res;
-				const titles = _allTitles[kind];
-				const titleObj = titles[uid];
-				if (titleObj) {
-					clearInterval(intervalId);
-					resolve(titleObj.title);
-				}
-			});
-		}, 10); // Check every second
+		// Check if the title is already available in the store
+		const currentTitles = get(allTitles);
+		const title = currentTitles[kind]?.[uid]?.title;
+		if (title) {
+			resolve(title);
+			return;
+		}
+
+		// If not available, subscribe to the store and wait for the title
+		const unsubscribe = allTitles.subscribe((res) => {
+			const titleObj = res[kind]?.[uid];
+			if (titleObj) {
+				unsubscribe();
+				resolve(titleObj.title);
+			}
+		});
+
+		// Set a timeout to prevent hanging promises
+		setTimeout(() => {
+			unsubscribe();
+			resolve(`Unknown ${kind} (${uid})`);
+		}, 5000); // 5 second timeout
 	});
 };
 

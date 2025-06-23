@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { statistic } from '$databaseMusiconn/stores/storeFilters';
-	import { LL } from '$lib/i18n/i18n-svelte';
 	import TabView from './TabView.svelte';
 
 	// Process statistics data for table view
@@ -9,12 +8,11 @@
 
 		return Object.entries($statistic[categoryKey])
 			.map(([id, data]) => ({
-id,
-count: data.count,
-color: data.color || '#cccccc'
-}))
-			.sort((a, b) => b.count - a.count)
-			.slice(0, 20); // Show top 20 items
+				id,
+				count: data.count,
+				color: data.color || '#cccccc'
+			}))
+			.sort((a, b) => b.count - a.count);
 	}
 
 	// Data for the four tabs
@@ -22,6 +20,7 @@ color: data.color || '#cccccc'
 	const workData = $derived(prepareChartData('work'));
 	const composerData = $derived(prepareChartData('composer'));
 	const personData = $derived(prepareChartData('person'));
+	const corporationData = $derived(prepareChartData('corporation'));
 
 	// find dynamically the parent container width
 	let parentContainerWidth = $state(0);
@@ -39,6 +38,7 @@ color: data.color || '#cccccc'
 		{workData}
 		{composerData}
 		{personData}
+		{corporationData}
 		width={parentContainerWidth}
 		height={parentContainerHeight}
 	/>

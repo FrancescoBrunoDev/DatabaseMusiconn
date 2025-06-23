@@ -40,7 +40,8 @@ const buildStatistics = () => {
 		location: {},
 		work: {},
 		composer: {},
-		person: {}
+		person: {},
+		corporation: {}
 	};
 
 	// Process all filtered events
@@ -120,29 +121,22 @@ const buildStatistics = () => {
 					stats.person[personId].count++;
 				}
 			}
+
+			// Process corporations
+			if (event.corporations && event.corporations.length > 0) {
+				for (const corporation of event.corporations) {
+					const corporationId = String(corporation.corporation);
+					if (!stats.corporation[corporationId]) {
+						stats.corporation[corporationId] = {
+							count: 0,
+							color: ''
+						};
+					}
+					stats.corporation[corporationId].count++;
+				}
+			}
 		}
 	}
-
-	// Assign colors to the most frequent items
-	const assignColors = (category: keyof Statistics) => {
-		const items = Object.entries(stats[category])
-			.sort((a, b) => b[1].count - a[1].count)
-			.slice(0, 12); // Limit to top 12 items
-
-		let _colorFilters = [...get(colorFilters)];
-
-		items.forEach((item, index) => {
-			if (_colorFilters.length > index) {
-				item[1].color = _colorFilters[index];
-			}
-		});
-	};
-
-	// Assign colors to each category
-	assignColors('location');
-	assignColors('work');
-	assignColors('composer');
-	assignColors('person');
 
 	// Update the statistic store
 	statistic.set(stats);
@@ -152,6 +146,24 @@ const buildStatistics = () => {
 
 const updateSelectedMethodFilter = (method: Method) => {
 	selectedMethodFilter.set(method);
+};
+
+const getColorForUidAndEntity = (uid: number, entity: Entity): string | void => {
+	const _filters = get(filters);
+	// this take check if a filter in the same entity exists and return the color of the filter
+	// Check in AND filters
+	const andMatch = _filters.and.find(filter => filter.id === uid && filter.entity === entity);
+	if (andMatch && andMatch.color) return andMatch.color;
+	// Check in OR filters
+	const orMatch = _filters.or.find(filter => filter.id === uid && filter.entity === entity);
+	if (orMatch && orMatch.color) return orMatch.color;
+
+	// Check in NOT filters
+	const notMatch = _filters.not.find(filter => filter.id === uid && filter.entity === entity);
+	if (notMatch && notMatch.color) return notMatch.color;
+
+	// If no match is found, return undefined (which is the return type of void)
+	return;
 };
 
 const urlifyerFilters = () => {
@@ -174,20 +186,20 @@ const deUrlifyerFilters = async (filtersUrl: FiltersForUrl) => {
 	const filtersOr =
 		filtersUrl.fo && filtersUrl.fo !== '_'
 			? filtersUrl.fo
-					.split(',')
-					.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
+				.split(',')
+				.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
 			: [];
 	const filtersAnd =
 		filtersUrl.fa && filtersUrl.fa !== '_'
 			? filtersUrl.fa
-					.split(',')
-					.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
+				.split(',')
+				.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
 			: [];
 	const filtersNot =
 		filtersUrl.fn && filtersUrl.fn !== '_'
 			? filtersUrl.fn
-					.split(',')
-					.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
+				.split(',')
+				.map((filter) => ({ entity: filter.split(':')[0], id: filter.split(':')[1] }))
 			: [];
 
 	function whichEntityIs(entity: string) {
@@ -533,5 +545,6 @@ export {
 	statistic,
 	updateEntitiesForSearchBox,
 	updateSelectedMethodFilter,
-	urlifyerFilters
+	urlifyerFilters,
+	getColorForUidAndEntity
 };
