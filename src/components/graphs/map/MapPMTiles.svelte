@@ -106,6 +106,7 @@
 				style: style,
 				center: validPoints.length > 0 ? [centerPoint.lng, centerPoint.lat] : [7.626135, 51.962944],
 				zoom: 12,
+				maxZoom: 16, // Set maximum zoom level
 				attributionControl: false,
 				transformRequest: (url, resourceType) => {
 					// Log which resources are being requested
