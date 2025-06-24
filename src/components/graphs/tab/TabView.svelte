@@ -39,7 +39,7 @@
 	}
 
 	// Tab state
-	let activeTab = $state('location');
+	let activeTab = $state('person');
 
 	// Get the active data based on selected tab
 	const activeData = $derived(() => {
