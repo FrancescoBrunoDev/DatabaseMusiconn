@@ -7,7 +7,7 @@
 		type DataPoint,
 		type DataSeries
 	} from '$databaseMusiconn/components/graphs/line/LineGraphD3.svelte';
-	import { LL } from '$databaseMusiconn/lib/i18n/i18n-svelte';
+	import { LL } from '$lib/i18n/i18n-svelte';
 
 	interface Props {
 		xScale: any;

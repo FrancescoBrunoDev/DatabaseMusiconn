@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { statistic } from '$databaseMusiconn/stores/storeFilters';
-	import { LL } from '$databaseMusiconn/lib/i18n/i18n-svelte';
+	import { LL } from '$lib/i18n/i18n-svelte';
 	import PieChart from './PieChart.svelte';
 
 	// Process statistics data for pie charts
