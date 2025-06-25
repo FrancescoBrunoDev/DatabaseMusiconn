@@ -160,7 +160,7 @@
 >
 	<!-- Tabs navigation -->
 
-	<div class="flex w-full justify-center gap-2 overflow-scroll rounded-lg rounded-b-none p-1">
+	<div class="flex w-full md:justify-center gap-2 overflow-scroll rounded-lg rounded-b-none p-1">
 		{#each ['person', 'work', 'corporation', 'composer', 'location'] as tab}
 			<button
 				class="text-text rounded-xl px-4 py-1 transition-all"
