@@ -3,7 +3,7 @@
 	import EventPerformances from './EventPerformances.svelte';
 	import {
 		getTitles,
-		getTitleString,
+		getTitleStringAsync,
 		getCountersForEvent,
 		getFormattedDate
 	} from '$databaseMusiconn/stores/storeEvents';
@@ -82,7 +82,7 @@
 			<span class="text-sm dark:font-semibold">
 				{#if event.locations}
 					{#each event.locations as location}
-						{#await getTitleString(location.location, 'location')}
+						{#await getTitleStringAsync(location.location, 'location')}
 							<div>loading</div>
 						{:then title}
 							<div transition:fly={{ y: 10, duration: 100, delay: 200 }}>{title}</div>
@@ -108,7 +108,7 @@
 						</div>
 						{#each event.corporations as corporation}
 							{#if corporation.subject == 2}
-								{#await getTitleString(corporation.corporation, 'corporation')}
+								{#await getTitleStringAsync(corporation.corporation, 'corporation')}
 									<div>loading</div>
 								{:then title}
 									<div class="flex items-center gap-1">

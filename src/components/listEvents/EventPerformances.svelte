@@ -2,7 +2,7 @@
 	import LL from '$lib/i18n/i18n-svelte';
 	import { Circle, ChevronUp } from 'lucide-svelte';
 	import { filters } from '$databaseMusiconn/stores/storeFilters';
-	import { getTitleString } from '$databaseMusiconn/stores/storeEvents';
+	import { getTitleStringAsync } from '$databaseMusiconn/stores/storeEvents';
 	import EventPerformancesPersons from '$databaseMusiconn/components/listEvents/EventPerformancesPersons.svelte';
 	import { fly } from 'svelte/transition';
 	interface Props {
@@ -61,7 +61,7 @@
 </script>
 
 {#each event.performances as performance, index}
-	{#await getTitleString(performance.work, 'work') then title}
+	{#await getTitleStringAsync(performance.work, 'work') then title}
 		{#if $filters.or.length === 0 && $filters.and.length === 0 && $filters.not.length === 0}
 			<div in:fly={{ y: 20, duration: 100, delay: 200 }}>
 				<span class=" font-bold">{toRoman(index + 1)}</span>. {title}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getTitleString } from '$databaseMusiconn/stores/storeEvents';
+	import { getTitleStringAsync } from '$databaseMusiconn/stores/storeEvents';
 	import { cn } from '$databaseMusiconn/lib/utils';
 	import { getTitle } from '$databaseMusiconn/stores/storeEvents';
 
@@ -39,7 +39,7 @@
 		const ids = data.map((item: { id: string }) => parseInt(item.id));
 		await getTitle(ids, title.toLowerCase() as Entity);
 		for (const item of data) {
-			const name = await getTitleString(parseInt(item.id), title.toLowerCase() as any);
+			const name = await getTitleStringAsync(parseInt(item.id), title.toLowerCase() as any);
 			names[item.id] = name || item.id;
 		}
 	}

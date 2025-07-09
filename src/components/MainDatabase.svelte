@@ -12,7 +12,11 @@
 	import PieChartContainer from '$databaseMusiconn/components/graphs/pie/PieChartContainer.svelte';
 	import TabViewContainer from '$databaseMusiconn/components/graphs/tab/TabViewContainer.svelte';
 	import { filteredEvents, buildStatistics } from '$databaseMusiconn/stores/storeFilters';
-	import { getGeometries, getTitle, getTitleString } from '$databaseMusiconn/stores/storeEvents';
+	import {
+		getGeometries,
+		getTitle,
+		getTitleStringAsync
+	} from '$databaseMusiconn/stores/storeEvents';
 	import { onMount } from 'svelte';
 
 	let isOver = $state(false);
@@ -41,7 +45,7 @@
 						if (!existingLocation) {
 							const arrayId = [String(location.location)];
 							await getTitle(arrayId, 'location');
-							const name = await getTitleString(Number(location.location), 'location');
+							const name = await getTitleStringAsync(Number(location.location), 'location');
 							const geometries = await getGeometries(Number(location.location));
 
 							locations.push({

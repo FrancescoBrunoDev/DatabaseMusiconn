@@ -497,6 +497,7 @@ export {
 	getTitle,
 	getTitles,
 	getTitleString,
+	getTitleStringAsync,
 	mainLocationID,
 	mainLocationInfo,
 	projectID,

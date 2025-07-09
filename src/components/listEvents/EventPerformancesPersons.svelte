@@ -1,6 +1,6 @@
 <script lang="ts">
 	import LL from '$lib/i18n/i18n-svelte';
-	import { getTitleString } from '$databaseMusiconn/stores/storeEvents';
+	import { getTitleString, allTitles } from '$databaseMusiconn/stores/storeEvents';
 
 	interface Props {
 		performance: EventPerformance;
@@ -16,8 +16,12 @@
 		return titles.join(' | ');
 	}
 
-	// Derived state for immediate updates
-	const personsText = $derived(performance.persons ? joinPersons(performance.persons) : '');
+	// Derived state for immediate updates that reacts to store changes
+	const personsText = $derived.by(() => {
+		// Access the store to make this reactive
+		$allTitles;
+		return performance.persons ? joinPersons(performance.persons) : '';
+	});
 </script>
 
 {#if performance.persons}
