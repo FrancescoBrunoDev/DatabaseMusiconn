@@ -23,14 +23,15 @@
 	let bottomDistance = $derived(isOver ? 1 : 0);
 	let isSearchSectionInEventsList = $derived(getIsSearchSectionInEventsList());
 
-	let allLocations: { name: string; id: number; geometries: any; amount: number }[] = $state([]);
+	let allLocations: { name: string | undefined; id: number; geometries: any; amount: number }[] =
+		$state([]);
 
 	type EventWithLocations = {
 		locations: { location: number }[];
 	};
 
 	async function updateLocations(_filteredEvents: any) {
-		let locations: { name: string; id: number; geometries: any; amount: number }[] = [];
+		let locations: { name: string | undefined; id: number; geometries: any; amount: number }[] = [];
 
 		for (const [years, events] of Object.entries(_filteredEvents)) {
 			for (const event of events as EventWithLocations[]) {

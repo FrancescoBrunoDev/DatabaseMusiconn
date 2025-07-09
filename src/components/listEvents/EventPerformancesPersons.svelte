@@ -10,13 +10,14 @@
 
 	let isPersonOpen = $state(false);
 
-	// make a function that join all the persons in a string with |
-	async function joinPersons(persons: Person[]) {
-		const titles = await Promise.all(
-			persons.map((person) => getTitleString(person.person, 'person'))
-		);
+	// Optimized synchronous version - gets titles immediately if cached
+	function joinPersons(persons: Person[]) {
+		const titles = persons.map((person) => getTitleString(person.person, 'person'));
 		return titles.join(' | ');
 	}
+
+	// Derived state for immediate updates
+	const personsText = $derived(performance.persons ? joinPersons(performance.persons) : '');
 </script>
 
 {#if performance.persons}
@@ -26,13 +27,7 @@
 	>
 {/if}
 
-{#if isPersonOpen}
-	{#await joinPersons(performance.persons)}
-		<div>load</div>
-	{:then title}
-		<span>:</span>
-		<span class="text-sm">{title}</span>
-	{:catch error}
-		<span class="text-destructive text-sm">Error loading persons</span>
-	{/await}
+{#if isPersonOpen && performance.persons}
+	<span>:</span>
+	<span class="text-sm">{personsText}</span>
 {/if}

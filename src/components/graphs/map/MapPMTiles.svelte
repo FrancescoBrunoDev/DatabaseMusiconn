@@ -7,7 +7,7 @@
 	import 'maplibre-gl/dist/maplibre-gl.css';
 
 	interface Props {
-		data: { name: string; geometries: { geo: number[] }[] }[];
+		data: { name: string | undefined; geometries: { geo: number[] }[] }[];
 	}
 
 	let { data }: Props = $props();
@@ -152,7 +152,7 @@
 		// Add each point as a simple black dot with a label
 		pointsWithNames.forEach((point) => {
 			// Create a unique ID for this point
-			const pointId = `point-${point.name.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`;
+			const pointId = `point-${(point.name || 'unnamed').replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`;
 			const labelId = `label-${pointId}`;
 
 			// Track added sources and layers for later cleanup
@@ -192,7 +192,7 @@
 				data: {
 					type: 'Feature',
 					properties: {
-						name: point.name.split(' ').slice(0, 3).join(' ')
+						name: (point.name || 'unnamed').split(' ').slice(0, 3).join(' ')
 					},
 					geometry: {
 						type: 'Point',
@@ -205,7 +205,7 @@
 			// Create a CSS-styled label instead of using MapLibre built-in labels
 			const labelElement = document.createElement('div');
 			labelElement.className = 'map-label';
-			labelElement.textContent = point.name.split(' ').slice(0, 3).join(' ');
+			labelElement.textContent = (point.name || 'unnamed').split(' ').slice(0, 3).join(' ');
 			labelElement.style.display = 'none'; // Initially hidden
 
 			// Store reference to customize later
