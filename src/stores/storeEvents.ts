@@ -324,7 +324,7 @@ const initializeCache = () => {
 	if (!browser) {
 		return;
 	}
-	
+
 	try {
 		const cached = localStorage.getItem(CACHE_KEY);
 		if (cached) {
@@ -334,7 +334,6 @@ const initializeCache = () => {
 
 			if (!isExpired && version === CACHE_VERSION && data) {
 				allTitles.set(data);
-				console.log('Loaded titles cache from localStorage');
 			}
 		}
 	} catch (error) {
@@ -348,7 +347,7 @@ const saveCache = () => {
 	if (!browser) {
 		return;
 	}
-	
+
 	try {
 		const data = get(allTitles);
 		const cacheObject = {
