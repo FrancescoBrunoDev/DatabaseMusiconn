@@ -17,11 +17,13 @@
 	let map: maplibregl.Map;
 	// Track hovered point ID to show/hide labels
 	let hoveredPointId: string | null = null;
-	// Store DOM elements for custom labels
-	let labelMarkers: Record<string, HTMLDivElement> = {};
+	// Store MapLibre markers for tooltips
+	let labelMarkers: Record<string, maplibregl.Marker> = {};
 	// Track added point sources and layers for cleanup
 	let addedSources: string[] = [];
 	let addedLayers: string[] = [];
+	// Store all point IDs for hover effects
+	let allPointIds: string[] = [];
 
 	let width = $state(800);
 	let height = $state(300);
@@ -149,6 +151,9 @@
 				coordinates: [d.geometries[0].geo[1], d.geometries[0].geo[0]] // [lng, lat]
 			}));
 
+		// Reset the point IDs array
+		allPointIds = [];
+
 		// Add each point as a simple black dot with a label
 		pointsWithNames.forEach((point) => {
 			// Create a unique ID for this point
@@ -158,6 +163,8 @@
 			// Track added sources and layers for later cleanup
 			addedSources.push(pointId, labelId);
 			addedLayers.push(pointId, labelId);
+			// Store this point ID for hover effects
+			allPointIds.push(pointId);
 
 			// Add a simple black dot as a circle layer with source
 			const pointSource = {
@@ -202,14 +209,23 @@
 			} as any);
 
 			// Add text label layer (initially invisible)
-			// Create a CSS-styled label instead of using MapLibre built-in labels
+			// Create a CSS-styled label as a MapLibre marker
 			const labelElement = document.createElement('div');
 			labelElement.className = 'map-label';
 			labelElement.textContent = (point.name || 'unnamed').split(' ').slice(0, 3).join(' ');
 			labelElement.style.display = 'none'; // Initially hidden
 
-			// Store reference to customize later
-			labelMarkers[pointId] = labelElement;
+			// Create a MapLibre marker for the tooltip
+			const marker = new maplibregl.Marker({
+				element: labelElement,
+				anchor: 'bottom-left',
+				offset: [10, -10] // Offset to position tooltip near the point
+			})
+				.setLngLat(point.coordinates as [number, number])
+				.addTo(map);
+
+			// Store reference for hover events
+			labelMarkers[pointId] = marker;
 
 			// Add text layer (as fallback - will be invisible)
 			map.addLayer({
@@ -230,18 +246,38 @@
 			// Add hover events for this point
 			map.on('mouseenter', pointId, () => {
 				hoveredPointId = pointId;
-				// Show the DOM label instead of changing layout property
+				// Show the marker's DOM element
 				if (labelMarkers && labelMarkers[pointId]) {
-					labelMarkers[pointId].style.display = 'block';
+					const markerElement = labelMarkers[pointId].getElement();
+					if (markerElement) {
+						markerElement.style.display = 'block';
+					}
 				}
+				// Update all points: enlarge hovered point, shrink others
+				allPointIds.forEach((id) => {
+					if (id === pointId) {
+						// Enlarge the hovered point
+						map.setPaintProperty(id, 'circle-radius', 10);
+					} else {
+						// Shrink all other points
+						map.setPaintProperty(id, 'circle-radius', 4);
+					}
+				});
 			});
 
 			map.on('mouseleave', pointId, () => {
 				hoveredPointId = null;
-				// Hide the DOM label
+				// Hide the marker's DOM element
 				if (labelMarkers && labelMarkers[pointId]) {
-					labelMarkers[pointId].style.display = 'none';
+					const markerElement = labelMarkers[pointId].getElement();
+					if (markerElement) {
+						markerElement.style.display = 'none';
+					}
 				}
+				// Reset all points back to normal size
+				allPointIds.forEach((id) => {
+					map.setPaintProperty(id, 'circle-radius', 8);
+				});
 			});
 		});
 
@@ -275,14 +311,17 @@
 
 		// Remove previous markers
 		Object.keys(labelMarkers).forEach((markerId) => {
-			// The actual marker removal happens automatically when layers are removed
-			delete labelMarkers[markerId];
+			if (labelMarkers[markerId]) {
+				labelMarkers[markerId].remove();
+				delete labelMarkers[markerId];
+			}
 		});
 
 		// Reset tracking arrays
 		addedLayers = [];
 		addedSources = [];
 		labelMarkers = {};
+		allPointIds = [];
 	}
 
 	// Initialize map on mount
