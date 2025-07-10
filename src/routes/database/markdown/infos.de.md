@@ -16,7 +16,6 @@ Die _Musikverein-Datenbank_ bietet eine leistungsstarke Suchfunktion, um Ihre um
 
 1. Suchleiste: Geben Sie Ihre Anfrage (z.B. „Beethoven" oder „Münster") in die Suchleiste oben ein.
 2. Filter: Verfeinern Sie die Ergebnisse nach Kategorien für eine präzisere Suche. Filter können wie folgt konfiguriert werden:
-
    - **UND**: Zeigt nur Ereignisse, die allen ausgewählten Kriterien entsprechen.<br/> Beispiel: Wenn zwei Komponisten mit „UND" zum Filter hinzugefügt werden, erscheinen nur Ereignisse mit beiden Komponisten.
    - **ODER**: Zeigt Ereignisse, die mindestens einem ausgewählten Kriterium entsprechen.<br/> Beispiel: Wenn zwei Komponisten mit „ODER" zum Filter hinzugefügt werden, erscheinen Ereignisse mit einem oder beiden Komponisten.
    - **NICHT**: Ausschluss von Ereignissen, die den ausgewählten Kriterien entsprechen.

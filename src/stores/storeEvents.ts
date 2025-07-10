@@ -1,8 +1,7 @@
+import { browser } from '$app/environment';
 import { urlBaseAPIMusiconn } from '$databaseMusiconn/states/stateGeneral.svelte';
 import { filters } from '$databaseMusiconn/stores/storeFilters';
-import type { SpawnOptions } from 'child_process';
 import { get, writable } from 'svelte/store';
-import { browser } from '$app/environment';
 
 const fetchedEvents = writable<Events>(undefined);
 // Create a more efficient cache with loading states
@@ -94,7 +93,7 @@ const getTitle = async (allUids: string[], kind: Entity) => {
 
 	// Mark UIDs as loading
 	const loadingSet = loadingTitles.get(kind) || new Set();
-	uidsToFetch.forEach(uid => loadingSet.add(Number(uid)));
+	uidsToFetch.forEach((uid) => loadingSet.add(Number(uid)));
 	loadingTitles.set(kind, loadingSet);
 
 	try {
@@ -132,24 +131,25 @@ const getTitle = async (allUids: string[], kind: Entity) => {
 			allTitlesMom[kind] = { ...allTitlesMom[kind], ...titles };
 			return allTitlesMom;
 		});
-
 	} catch (error) {
 		console.error(`Failed to fetch titles for ${kind}:`, error);
 
 		// Mark failed UIDs to avoid immediate retry
 		const failedSet = failedTitles.get(kind) || new Set();
-		uidsToFetch.forEach(uid => failedSet.add(Number(uid)));
+		uidsToFetch.forEach((uid) => failedSet.add(Number(uid)));
 		failedTitles.set(kind, failedSet);
 
 		// Clear failed cache after 5 minutes
-		setTimeout(() => {
-			failedTitles.delete(kind);
-		}, 5 * 60 * 1000);
-
+		setTimeout(
+			() => {
+				failedTitles.delete(kind);
+			},
+			5 * 60 * 1000
+		);
 	} finally {
 		// Remove UIDs from loading set
 		const loadingSet = loadingTitles.get(kind) || new Set();
-		uidsToFetch.forEach(uid => loadingSet.delete(Number(uid)));
+		uidsToFetch.forEach((uid) => loadingSet.delete(Number(uid)));
 		if (loadingSet.size === 0) {
 			loadingTitles.delete(kind);
 		} else {
@@ -196,7 +196,7 @@ const getTitleString = (uid: number, kind: Entity): string | undefined => {
 
 	if (!loadingSet.has(uid) && !failedSet.has(uid)) {
 		// Trigger background fetch
-		getTitle([uid.toString()], kind).catch(error => {
+		getTitle([uid.toString()], kind).catch((error) => {
 			console.error(`Failed to fetch title for ${kind} ${uid}:`, error);
 		});
 	}
@@ -330,7 +330,7 @@ const initializeCache = () => {
 		if (cached) {
 			const { data, timestamp, version } = JSON.parse(cached);
 			const now = Date.now();
-			const isExpired = (now - timestamp) > (CACHE_EXPIRY_HOURS * 60 * 60 * 1000);
+			const isExpired = now - timestamp > CACHE_EXPIRY_HOURS * 60 * 60 * 1000;
 
 			if (!isExpired && version === CACHE_VERSION && data) {
 				allTitles.set(data);
@@ -382,18 +382,18 @@ const preloadTitlesForEvents = async (events: EventItem[]) => {
 	};
 
 	// Collect all unique UIDs from all events
-	events.forEach(event => {
+	events.forEach((event) => {
 		const uidTypes: Entity[] = ['work', 'person', 'location', 'corporation', 'composer'];
-		uidTypes.forEach(async kind => {
+		uidTypes.forEach(async (kind) => {
 			const uids = await getUidsPerEntity(kind, event);
-			uids.forEach(uid => allUidsToFetch[kind].add(Number(uid)));
+			uids.forEach((uid) => allUidsToFetch[kind].add(Number(uid)));
 		});
 	});
 
 	// Fetch titles for all collected UIDs in parallel
 	const fetchPromises = Object.entries(allUidsToFetch).map(([kind, uidsSet]) => {
 		if (uidsSet.size > 0) {
-			const uidsArray = Array.from(uidsSet).map(uid => uid.toString());
+			const uidsArray = Array.from(uidsSet).map((uid) => uid.toString());
 			return getTitle(uidsArray, kind as Entity);
 		}
 		return Promise.resolve();
@@ -419,7 +419,7 @@ const getTitlesPrioritized = async (items: Array<{ id: string; count: number }>,
 
 	// Filter out UIDs that already exist, are loading, or have failed
 	const uidsToFetch = sortedItems
-		.map(item => ({ uid: item.id, count: item.count }))
+		.map((item) => ({ uid: item.id, count: item.count }))
 		.filter(({ uid }) => {
 			const numUid = Number(uid);
 			return !existingTitles[numUid] && !loadingSet.has(numUid) && !failed.has(numUid);
@@ -437,7 +437,7 @@ const getTitlesPrioritized = async (items: Array<{ id: string; count: number }>,
 			try {
 				await getTitle([item.uid], kind);
 				// Very small delay to allow UI update
-				await new Promise(resolve => setTimeout(resolve, 5));
+				await new Promise((resolve) => setTimeout(resolve, 5));
 			} catch (error) {
 				console.error(`Failed to fetch high-priority title ${item.uid} for ${kind}:`, error);
 			}
@@ -448,11 +448,11 @@ const getTitlesPrioritized = async (items: Array<{ id: string; count: number }>,
 		for (let i = 0; i < normalPriority.length; i += batchSize) {
 			const batch = normalPriority.slice(i, i + batchSize);
 			try {
-				const uids = batch.map(item => item.uid);
+				const uids = batch.map((item) => item.uid);
 				await getTitle(uids, kind);
 
 				// Small delay between batches
-				await new Promise(resolve => setTimeout(resolve, 20));
+				await new Promise((resolve) => setTimeout(resolve, 20));
 			} catch (error) {
 				console.error(`Failed to fetch batch for ${kind}:`, error);
 			}
@@ -489,22 +489,22 @@ const getCacheStats = () => {
 
 export {
 	allTitles,
+	clearFailedCache,
 	endYear,
 	fetchedEvents,
+	getCacheStats,
 	getCountersForEvent,
 	getFormattedDate,
 	getGeometries,
 	getTitle,
 	getTitles,
+	getTitlesPrioritized,
 	getTitleString,
 	getTitleStringAsync,
 	mainLocationID,
 	mainLocationInfo,
+	preloadTitlesForEvents,
 	projectID,
 	startYear,
-	useBounderiesYears,
-	preloadTitlesForEvents,
-	clearFailedCache,
-	getCacheStats,
-	getTitlesPrioritized
+	useBounderiesYears
 };

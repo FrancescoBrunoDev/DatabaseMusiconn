@@ -16,7 +16,6 @@ The _Musikverein Database_ offers a powerful search feature to help you explore 
 
 1. Search Bar: Enter your query (e.g., "Beethoven" or "Münster") in the search bar at the top.
 2. Filters: Narrow results by category for more precise exploration. Filters can be configured as follows:
-
    - **AND**: Display events that match all selected criteria.<br/> For example, if two composers are added to the filter with "AND," only events involving both composers will appear.
    - **OR**: Display events that match at least one selected criterion.<br/> For example, if two composers are added to the filter with "OR," events involving either or both composers will appear.
    - **NOT**: Exclude events matching the selected criteria.

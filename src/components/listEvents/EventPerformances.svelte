@@ -61,7 +61,15 @@
 </script>
 
 {#each event.performances as performance, index}
-	{#await getTitleStringAsync(performance.work, 'work') then title}
+	{#await getTitleStringAsync(performance.work, 'work')}
+		<div class="flex flex-wrap gap-2">
+			<div
+				style="width: {(Math.random() * 0.5 + 0.25) * 100}%"
+				class="bg-secondary dark:bg-dark-secondary my-1.5 h-3 animate-pulse rounded-full"
+			></div>
+			<div class="bg-text/50 my-1.5 h-3 w-20 animate-pulse rounded-full"></div>
+		</div>
+	{:then title}
 		{#if $filters.or.length === 0 && $filters.and.length === 0 && $filters.not.length === 0}
 			<div in:fly={{ y: 20, duration: 100, delay: 200 }}>
 				<span class=" font-bold">{toRoman(index + 1)}</span>. {title}

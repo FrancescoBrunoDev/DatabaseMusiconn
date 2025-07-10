@@ -130,7 +130,7 @@
 >
 	<!-- Tabs navigation -->
 
-	<div class="flex w-full md:justify-center gap-2 overflow-scroll rounded-lg rounded-b-none p-1">
+	<div class="flex w-full gap-2 overflow-scroll rounded-lg rounded-b-none p-1 md:justify-center">
 		{#each ['person', 'work', 'corporation', 'composer', 'location'] as tab}
 			<button
 				class="text-text rounded-xl px-4 py-1 transition-all"
@@ -170,7 +170,7 @@
 									{#if item.title === undefined}
 										<div
 											style="width: {(Math.random() * 0.5 + 0.25) * 100}%"
-											class="rounded-full bg-secondary dark:bg-dark-secondary h-3 my-1.5 animate-pulse"
+											class="bg-secondary dark:bg-dark-secondary my-1.5 h-3 animate-pulse rounded-full"
 										></div>
 									{:else}
 										{item.title}
