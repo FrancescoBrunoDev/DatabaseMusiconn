@@ -40,7 +40,7 @@
 
 <div
 	class={cn(
-		`bg-background dark:bg-dark-background text-text dark:text-dark-text relative overflow-hidden  rounded-xl border-2 transition-all duration-100`,
+		`bg-background dark:bg-dark-background text-text dark:text-dark-text relative overflow-hidden rounded-xl border-2 transition-all duration-100`,
 		{
 			'flex shrink-0 flex-col': isOpen,
 			'flex w-24 flex-col justify-center gap-2 hover:scale-103': !isOpen,
@@ -79,11 +79,14 @@
 		{/if}
 		{#if isOpen}
 			<br />
-			<span class="text-sm dark:font-semibold">
+			<span class="flex w-full justify-center text-sm dark:font-semibold">
 				{#if event.locations}
 					{#each event.locations as location}
 						{#await getTitleStringAsync(location.location, 'location')}
-							<div>loading</div>
+							<div
+								style="width: {(Math.random() * 0.5 + 0.25) * 100}%"
+								class="bg-text/50 my-1.5 h-3 animate-pulse rounded-full"
+							></div>
 						{:then title}
 							<div transition:fly={{ y: 10, duration: 100, delay: 200 }}>{title}</div>
 						{:catch error}
@@ -155,7 +158,6 @@
 					{$LL.filters.entities.performances()}
 				</div>
 				<div
-					transition:slide={{ duration: 500, easing: cubicOut }}
 					class={cn('divide  flex flex-col gap-1 divide-y-2 rounded-xl dark:font-light', {
 						'overflow-y-scroll': isModalOpen
 					})}

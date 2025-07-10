@@ -6,7 +6,7 @@
 		getTitlesPrioritized
 	} from '$databaseMusiconn/stores/storeEvents';
 	import { get } from 'svelte/store';
-	import { fade } from 'svelte/transition';
+	import { fly, fade } from 'svelte/transition';
 	import { getColorForUidAndEntity } from '$databaseMusiconn/stores/storeFilters';
 
 	interface Props {
