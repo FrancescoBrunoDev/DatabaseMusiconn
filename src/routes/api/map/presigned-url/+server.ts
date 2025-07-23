@@ -3,7 +3,8 @@ import {
 	MINIO_ENDPOINT,
 	MINIO_PORT,
 	MINIO_SECRET_KEY,
-	MINIO_USE_SSL
+	MINIO_USE_SSL,
+	PROTOMAP_V
 } from '$env/static/private';
 import { error, json } from '@sveltejs/kit';
 import { config } from 'dotenv';
@@ -14,18 +15,18 @@ config();
 
 // Initialize Minio client with environment variables
 const minioClient = new Client({
-	endPoint: MINIO_ENDPOINT || 'minio-y8sgkwgsc0wogosk4gc844kk.francesco-bruno.com',
-	port: parseInt(MINIO_PORT || '443'),
+	endPoint: MINIO_ENDPOINT,
+	port: parseInt(MINIO_PORT),
 	useSSL: MINIO_USE_SSL !== 'false',
-	accessKey: MINIO_ACCESS_KEY || '',
-	secretKey: MINIO_SECRET_KEY || ''
+	accessKey: MINIO_ACCESS_KEY,
+	secretKey: MINIO_SECRET_KEY
 });
 
 export async function GET({ url }: { url: URL }) {
 	try {
 		// Get parameters from URL
-		const bucket = url.searchParams.get('bucket') || 'protomaps';
-		const objectName = url.searchParams.get('object') || '20250620.pmtiles';
+		const bucket = 'protomaps';
+		const objectName = `${PROTOMAP_V}.pmtiles`;
 		const expirySeconds = parseInt(url.searchParams.get('expiry') || '300'); // Default 5 minutes
 
 		// Generate a presigned URL for temporary access

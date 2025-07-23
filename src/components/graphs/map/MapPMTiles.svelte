@@ -62,9 +62,7 @@
 	// Fetch presigned URL for PMTiles file
 	async function getPresignedUrl() {
 		try {
-			const response = await fetch(
-				'/api/map/presigned-url?bucket=protomaps&object=20250620.pmtiles'
-			);
+			const response = await fetch(`/api/map/presigned-url`);
 			if (!response.ok) {
 				throw new Error(`Failed to get presigned URL: ${response.statusText}`);
 			}
