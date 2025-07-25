@@ -20,6 +20,11 @@
 	let isSearchSectionInEventsList = $derived(getIsSearchSectionInEventsList());
 	let isLoadingSuggestions = $derived(getIsLoadingSuggestions());
 
+	// Debug: Log when suggestions change
+	$effect(() => {
+		console.log('Suggestions updated:', suggestions?.length || 0, 'items');
+	});
+
 	onMount(() => {
 		if (browser) {
 			searchSection = isSearchSectionInEventsList
@@ -72,31 +77,34 @@
 				<p class="ml-2">Loading suggestions...</p>
 			</div>
 		{:else if suggestions && suggestions.length > 0}
-			{#each suggestions as suggestion, i (suggestion[2])}
-				<div
-					in:fade={{ duration: 200, delay: 50 * Math.min(5, i) }}
-					class="flex h-fit items-center gap-1"
-				>
-					{#if $entitiesForSearchBox.length > 1}
-						<div class="border-text flex h-5 items-center rounded-full border-2 px-2 text-xs">
-							{suggestion[1]}
-						</div>
-					{/if}
-
-					<button
-						class="w-full text-left"
-						onclick={() => handleFilterFromSuggestion({ suggestion })}
-						id={suggestion[2]}>{suggestion[0]}</button
+			<div in:fade={{ duration: 150 }} out:fade={{ duration: 100 }}>
+				{#each suggestions as suggestion}
+					<div
+						in:fade={{ duration: 400 }}
+						out:fade={{ duration: 200 }}
+						class="flex h-fit items-center gap-1 mb-2"
 					>
-					{#if suggestion.count !== undefined && suggestion.count > 0}
-						<span
-							class="bg-primary dark:bg-dark-primary text-secondary flex h-5 items-center rounded-full px-2 text-xs"
+						{#if $entitiesForSearchBox.length > 1}
+							<div class="border-text flex h-5 items-center rounded-full border-2 px-2 text-xs">
+								{suggestion[1]}
+							</div>
+						{/if}
+
+						<button
+							class="w-full text-left"
+							onclick={() => handleFilterFromSuggestion({ suggestion })}
+							id={suggestion[2]}>{suggestion[0]}</button
 						>
-							{suggestion.count}
-						</span>
-					{/if}
-				</div>
-			{/each}
+						{#if suggestion.count !== undefined && suggestion.count > 0}
+							<span
+								class="bg-primary dark:bg-dark-primary text-secondary flex h-5 items-center rounded-full px-2 text-xs"
+							>
+								{suggestion.count}
+							</span>
+						{/if}
+					</div>
+				{/each}
+			</div>
 		{:else}
 			<div class="text-secondary flex h-full items-center justify-center">
 				<p>No suggestions</p>

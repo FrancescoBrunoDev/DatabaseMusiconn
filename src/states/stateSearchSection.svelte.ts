@@ -156,7 +156,13 @@ const autocomplete = async () => {
 		const filteredSuggestions = removeFormSuggestionIfInFilters(results);
 
 		// Enrich with counts and sort by frequency
-		suggestions = await enrichAndSortSuggestions(filteredSuggestions);
+		const enrichedSuggestions = await enrichAndSortSuggestions(filteredSuggestions);
+
+		// Clear suggestions first to trigger out animations, then set new ones to trigger in animations
+		suggestions = [];
+		// Use a small delay to ensure the DOM updates and out animations complete
+		await new Promise(resolve => setTimeout(resolve, 50));
+		suggestions = enrichedSuggestions;
 	} catch (error) {
 		console.error(
 			'Error fetching suggestions with project ID:',
@@ -168,7 +174,12 @@ const autocomplete = async () => {
 			// Fallback: try without project ID
 			const results = await fetchSuggestions(entities, false);
 			const filteredSuggestions = removeFormSuggestionIfInFilters(results);
-			suggestions = await enrichAndSortSuggestions(filteredSuggestions);
+			const enrichedSuggestions = await enrichAndSortSuggestions(filteredSuggestions);
+
+			// Clear suggestions first, then set new ones to trigger animations
+			suggestions = [];
+			await new Promise(resolve => setTimeout(resolve, 50));
+			suggestions = enrichedSuggestions;
 		} catch (fallbackError) {
 			console.error('Error fetching suggestions without project ID:', fallbackError);
 			suggestions = [];
