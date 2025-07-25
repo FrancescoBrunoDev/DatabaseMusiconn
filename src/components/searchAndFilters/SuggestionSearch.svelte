@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { slide } from 'svelte/transition';
+	import { slide, fade } from 'svelte/transition';
 	import { addFilterElement, entitiesForSearchBox } from '$databaseMusiconn/stores/storeFilters';
 	import {
 		getSuggestions,
@@ -72,8 +72,11 @@
 				<p class="ml-2">Loading suggestions...</p>
 			</div>
 		{:else if suggestions && suggestions.length > 0}
-			{#each suggestions as suggestion}
-				<div class="flex h-fit items-center gap-1">
+			{#each suggestions as suggestion, i (suggestion[2])}
+				<div
+					in:fade={{ duration: 200, delay: 50 * Math.min(5, i) }}
+					class="flex h-fit items-center gap-1"
+				>
 					{#if $entitiesForSearchBox.length > 1}
 						<div class="border-text flex h-5 items-center rounded-full border-2 px-2 text-xs">
 							{suggestion[1]}
