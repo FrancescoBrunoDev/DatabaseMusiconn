@@ -4,21 +4,21 @@
 	import {
 		getSuggestions,
 		setInputValue,
-		deleteSuggestions
+		deleteSuggestions,
+		getIsLoadingSuggestions
 	} from '$databaseMusiconn/states/stateSearchSection.svelte';
-	import { urlBaseAPIMusiconn } from '$databaseMusiconn/states/stateGeneral.svelte';
-	import { projectID } from '$databaseMusiconn/stores/storeEvents';
-	import { Loader2 } from 'lucide-svelte';
 	import { getIsSearchSectionInEventsList } from '$databaseMusiconn/states/stateSearchSection.svelte';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import { Loader2 } from 'lucide-svelte';
 
 	let div: HTMLDivElement | undefined = $state(undefined);
 	let isOpen: boolean = $state(false);
 	let searchSection: HTMLDivElement | null = $state(null);
 	let searchInput: HTMLInputElement | null = $state(null);
-	let suggestions: AutocompleteResult[] = $derived(getSuggestions());
+	let suggestions: (AutocompleteResult & { count?: number })[] = $derived(getSuggestions());
 	let isSearchSectionInEventsList = $derived(getIsSearchSectionInEventsList());
+	let isLoadingSuggestions = $derived(getIsLoadingSuggestions());
 
 	onMount(() => {
 		if (browser) {
@@ -57,18 +57,6 @@
 			window.removeEventListener('click', handleClickOutside);
 		};
 	});
-
-	async function getNumbers(suggestionID: number, entity: string | undefined) {
-		const res = await fetch(
-			`${urlBaseAPIMusiconn}?action=query&${entity}=${suggestionID}&entity=none${$projectID ? `&project=${$projectID}` : ''}&format=json`
-		);
-		if (res.ok) {
-			const { count } = await res.json();
-			return count.event;
-		} else {
-			console.error('Fetch failed', res.status, res.statusText);
-		}
-	}
 </script>
 
 {#if isOpen}
@@ -77,7 +65,13 @@
 		transition:slide
 		class="bg-background dark:bg-dark-background z-10 mt-2 flex h-52 w-full flex-col gap-y-2 overflow-auto overscroll-auto rounded-xl border-2 p-2"
 	>
-		{#if suggestions && suggestions.length > 0}
+		{#if isLoadingSuggestions}
+			<!-- Show loading state while fetching and sorting suggestions -->
+			<div class="text-secondary flex h-full items-center justify-center">
+				<Loader2 class="h-6 w-6 animate-spin" />
+				<p class="ml-2">Loading suggestions...</p>
+			</div>
+		{:else if suggestions && suggestions.length > 0}
 			{#each suggestions as suggestion}
 				<div class="flex h-fit items-center gap-1">
 					{#if $entitiesForSearchBox.length > 1}
@@ -91,23 +85,13 @@
 						onclick={() => handleFilterFromSuggestion({ suggestion })}
 						id={suggestion[2]}>{suggestion[0]}</button
 					>
-					{#await getNumbers(Number(suggestion[2]), suggestion[1])}
+					{#if suggestion.count !== undefined && suggestion.count > 0}
 						<span
 							class="bg-primary dark:bg-dark-primary text-secondary flex h-5 items-center rounded-full px-2 text-xs"
 						>
-							<Loader2 class="h-full animate-spin py-1" />
+							{suggestion.count}
 						</span>
-					{:then numberEvents}
-						{#if Number(numberEvents) > 0}
-							<span
-								class="bg-primary dark:bg-dark-primary text-secondary flex h-5 items-center rounded-full px-2 text-xs"
-							>
-								{numberEvents}
-							</span>
-						{/if}
-					{:catch error}
-						<div>not availe now</div>
-					{/await}
+					{/if}
 				</div>
 			{/each}
 		{:else}

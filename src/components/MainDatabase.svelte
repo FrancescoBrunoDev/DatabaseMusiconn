@@ -18,6 +18,7 @@
 		getTitleStringAsync
 	} from '$databaseMusiconn/stores/storeEvents';
 	import { onMount } from 'svelte';
+	import { Loader2 } from 'lucide-svelte';
 
 	let isOver = $state(false);
 	let opacitySearchSection = $derived(isOver ? 0.3 : 1);
@@ -112,7 +113,9 @@
 			{:else}
 				<div
 					class="bg-secondary dark:bg-dark-secondary flex h-[300px] w-11/12 max-w-3xl animate-pulse items-center justify-center rounded-xl"
-				></div>
+				>
+					<Loader2 class="h-6 w-6 animate-spin" />
+				</div>
 			{/if}
 		{:else if $selectedGraphType === 'map'}
 			{#if allLocations.length > 0}
@@ -120,7 +123,9 @@
 			{:else}
 				<div
 					class="bg-secondary dark:bg-dark-secondary flex h-[300px] w-11/12 max-w-3xl animate-pulse items-center justify-center rounded-xl"
-				></div>
+				>
+					<Loader2 class="h-6 w-6 animate-spin" />
+				</div>
 			{/if}
 		{:else if $selectedGraphType === 'pie'}
 			<div

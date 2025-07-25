@@ -5,6 +5,7 @@
 	import * as pmtiles from 'pmtiles';
 	import { GRAYSCALE, layers } from '@protomaps/basemaps';
 	import 'maplibre-gl/dist/maplibre-gl.css';
+	import { Loader2 } from 'lucide-svelte';
 
 	interface Props {
 		data: { name: string | undefined; geometries: { geo: number[] }[] }[];
@@ -352,9 +353,9 @@
 >
 	{#if isLoading}
 		<div
-			class="bg-background absolute top-0 left-0 z-10 flex h-full w-full items-center justify-center"
+			class="bg-secondary dark:bg-dark-secondary flex h-full w-full animate-pulse items-center justify-center rounded-xl"
 		>
-			<div class="loader-spinner"></div>
+			<Loader2 class="h-6 w-6 animate-spin" />
 		</div>
 	{/if}
 
@@ -371,23 +372,6 @@
 
 <style lang="postcss">
 	@reference '$tailwind';
-	/* Simple styling for the map container */
-
-	.loader-spinner {
-		width: 40px;
-		height: 40px;
-		border-radius: 50%;
-		border: 3px solid rgba(0, 0, 0, 0.1);
-		border-top-color: #000;
-		animation: spin 1s linear infinite;
-	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
 	/* Custom styling for map labels */
 	:global(.map-label) {
 		@apply bg-background text-text rounded-xl px-2 py-1 text-sm whitespace-nowrap drop-shadow-2xl;
