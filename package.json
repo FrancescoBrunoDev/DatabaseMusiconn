@@ -51,7 +51,6 @@
 		"cron": "^4.3.3",
 		"d3": "^7.9.0",
 		"dotenv": "^17.2.1",
-		"eventsource": "^4.0.0",
 		"isomorphic-dompurify": "^2.19.0",
 		"lucide-svelte": "^0.542.0",
 		"maplibre-gl": "^5.7.0",
