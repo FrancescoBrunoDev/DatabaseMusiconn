@@ -3,8 +3,8 @@ import { LocalStorage } from '$lib/storage.svelte';
 
 const urlBaseAPIMusiconn = $state('https://performance.musiconn.de/api');
 
-let locale = new LocalStorage<Locales>('lang', 'en');
-let themeKind = new LocalStorage<ThemeKind>('theme', 'base');
+let locale = browser ? new LocalStorage<Locales>('lang', 'en') : { current: 'en' as Locales };
+let themeKind = browser ? new LocalStorage<ThemeKind>('theme', 'base') : { current: 'base' as ThemeKind };
 
 function setFirstThemeData() {
 	if (browser) {
