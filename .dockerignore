@@ -1,4 +1,3 @@
-node_modules
 .vscode
 .svelte-kit
 .build
@@ -9,8 +8,6 @@ dist
 .git
 .gitignore
 npm-debug.log
-.env
-.env.*
 coverage
 
 # local dev

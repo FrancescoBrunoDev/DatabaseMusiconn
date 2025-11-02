@@ -11,7 +11,14 @@ COPY package.json package-lock.json* yarn.lock* ./
 RUN npm ci --silent || npm install --silent
 
 # Copy the rest of the sources
+# Copy source files
 COPY . .
+
+# If you have a .env file with build-time secrets (MINIO_*, etc.), copy it so Vite's static env plugin
+# (virtual:env/static/private) can expose the variables during the build.
+# This will fail silently if .env is not present in the build context.
+ARG COPY_ENV=true
+RUN if [ "$COPY_ENV" = "true" ] && [ -f .env ]; then echo "Copying .env for build"; else echo ".env not found or copy disabled"; fi
 
 # Build the app (this project uses Vite / SvelteKit)
 RUN npm run build
