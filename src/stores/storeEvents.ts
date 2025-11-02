@@ -361,13 +361,12 @@ const saveCache = () => {
 	}
 };
 
-// Subscribe to allTitles changes and save to localStorage
-allTitles.subscribe(() => {
-	saveCache();
-});
-
-// Initialize cache on module load (only in browser)
+// Subscribe to allTitles changes and save to localStorage (only in browser)
 if (browser) {
+	allTitles.subscribe(() => {
+		saveCache();
+	});
+	// Initialize cache on module load
 	initializeCache();
 }
 
