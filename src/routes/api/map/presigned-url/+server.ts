@@ -19,7 +19,8 @@ const minioClient = new Client({
 	port: parseInt(MINIO_PORT),
 	useSSL: MINIO_USE_SSL !== 'false',
 	accessKey: MINIO_ACCESS_KEY,
-	secretKey: MINIO_SECRET_KEY
+	secretKey: MINIO_SECRET_KEY,
+	region: 'garage'
 });
 
 export async function GET({ url }: { url: URL }) {
