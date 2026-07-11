@@ -2,7 +2,7 @@ import { persistStore } from '$databaseMusiconn/utils/storeUtils';
 import { get, writable } from 'svelte/store';
 
 import { type DataSeries } from '$databaseMusiconn/components/graphs/line/LineGraphD3.svelte';
-import { endYear, fetchedEvents, startYear } from '$databaseMusiconn/stores/storeEvents';
+import { endYear, fetchedEvents, startYear, timeline } from '$databaseMusiconn/stores/storeEvents';
 import { filteredEvents, filters } from '$databaseMusiconn/stores/storeFilters';
 import osmtogeojson from 'osmtogeojson';
 
@@ -122,6 +122,26 @@ const updateLineData = async () => {
 	}
 	// update dataForLineGraph
 	dataForLineGraph.set(_dataForLineGraph);
+};
+
+/**
+ * Render the line graph instantly from the cheap per-year `timeline` histogram
+ * (the new API returns this in <0.2s). This is the "no filters" total line,
+ * identical to what `updateLineData` computes from the full event list when no
+ * filters are active. Called before the detailed events have streamed in so the
+ * UI is never blank; replaced by the full computation once events arrive.
+ */
+const updateLineDataFromTimeline = () => {
+	const _timeline = get(timeline);
+	const _startYear = get(startYear);
+	const _endYear = get(endYear);
+	const series: DataSeries[] = [
+		{ name: 'and', id: 'and', color: 'hsl(var(--text))', data: [] }
+	];
+	for (let year = _startYear; year <= _endYear + 10; year++) {
+		series[0].data.push({ year, value: _timeline[String(year)] || 0 });
+	}
+	dataForLineGraph.set(series);
 };
 
 const updateFilteredEventsAndUdateDataForGraph = async () => {
@@ -320,5 +340,6 @@ export {
 	JSONMuenster,
 	selectedGraphType,
 	updateFilteredEventsAndUdateDataForGraph,
-	updateLineData
+	updateLineData,
+	updateLineDataFromTimeline
 };

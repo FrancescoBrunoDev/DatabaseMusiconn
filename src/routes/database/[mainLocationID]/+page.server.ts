@@ -1,4 +1,5 @@
 import { getLocationInfo, joinEventByYear } from '$databaseMusiconn/lib/dataMusiconn.server';
+import { getLocationMeta } from '$databaseMusiconn/lib/musiconnApi';
 import { mainLocationID } from '$databaseMusiconn/stores/storeEvents';
 import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
@@ -8,10 +9,11 @@ import type { PageServerLoad } from './$types';
 const cache: Record<
 	string,
 	{
-		events: Events;
+		events: Events | Promise<Events>;
 		startYear: number;
 		endYear: number;
 		locationInfo: LocationInfo;
+		timeline: { [year: string]: number };
 		timestamp: number; // Add timestamp for cache invalidation if needed
 	}
 > = {};
@@ -35,45 +37,62 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	if (needsFreshData) {
 		try {
-			const res = await joinEventByYear();
+			// 1) Fast metadata (~0.1s): ship the per-year timeline first so the line
+			//    graph renders instantly, before the detailed event list streams in.
+			const meta = await getLocationMeta(Number(params.mainLocationID));
 			const locationInfo = await getLocationInfo(get(mainLocationID));
 
-			// Update the cache with fresh data
 			cache[currentLocationId] = {
-				events: res.event,
-				startYear: res.startYear,
-				endYear: res.endYear,
-				locationInfo: locationInfo,
+				events: joinEventByYear()
+					.then((res) => {
+						// Replace the streaming promise with the resolved events in the cache so
+						// subsequent requests get the data synchronously.
+						if (cache[currentLocationId]) cache[currentLocationId].events = res.event;
+						return res.event;
+					})
+					.catch((error) => {
+						console.error('An error occurred while fetching events:', error);
+						return {} as Events;
+					}),
+				startYear: meta.firstYear || 1850,
+				endYear: meta.lastYear || 1900,
+				locationInfo,
+				timeline: meta.timeline,
 				timestamp: Date.now()
 			};
 		} catch (error) {
-			console.error('An error occurred while fetching events:', error);
+			console.error('An error occurred while fetching location info:', error);
 			// Initialize with empty data if not already cached
 			if (!cache[currentLocationId]) {
 				cache[currentLocationId] = {
-					events: {},
+					events: {} as Events,
 					startYear: 0,
 					endYear: 0,
 					locationInfo: {} as LocationInfo,
+					timeline: {},
 					timestamp: Date.now()
 				};
 			}
 		}
 	}
 
-	const currentCache = cache[currentLocationId] || {
-		events: {},
-		startYear: 0,
-		endYear: 0,
-		locationInfo: {} as LocationInfo
-	};
+	const currentCache =
+		cache[currentLocationId] ||
+		{
+			events: {} as Events,
+			startYear: 0,
+			endYear: 0,
+			locationInfo: {} as LocationInfo,
+			timeline: {}
+		};
 
 	return {
 		props: {
 			events: currentCache.events,
 			startYear: currentCache.startYear,
 			endYear: currentCache.endYear,
-			locationInfo: currentCache.locationInfo
+			locationInfo: currentCache.locationInfo,
+			timeline: currentCache.timeline
 		}
 	};
 };

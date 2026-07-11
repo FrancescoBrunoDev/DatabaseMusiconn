@@ -266,6 +266,36 @@ export async function getEventsForLocation(locationId: number): Promise<EventIte
 }
 
 /** Legacy `LocationInfo` reshaped from a `location` GraphQL object. */
+/**
+ * Fast location metadata: total event count, first/last event year and the
+ * per-year event histogram (the `timeline`). Used to render the line graph
+ * instantly while the detailed event list streams in.
+ *
+ * The histogram values sum to `count`, so it is a complete per-year breakdown
+ * (the same data the line graph would build from the full event list when no
+ * filters are active).
+ */
+export interface LocationMeta {
+	count: number;
+	firstYear: number;
+	lastYear: number;
+	timeline: { [year: string]: number };
+}
+
+export async function getLocationMeta(locationId: number): Promise<LocationMeta> {
+	const data = await gql<{ events: { count: number; calendar: { meta: { firstYear: number; lastYear: number } }; timeline: { [year: string]: number } } }>(
+		`query ($id: PositiveInt) { events(locationId: $id) { count calendar { meta { firstYear lastYear } } timeline } }`,
+		{ id: locationId }
+	);
+	const e = data.events || { count: 0, calendar: { meta: { firstYear: 0, lastYear: 0 } }, timeline: {} };
+	return {
+		count: e.count ?? 0,
+		firstYear: e.calendar?.meta?.firstYear ?? 0,
+		lastYear: e.calendar?.meta?.lastYear ?? 0,
+		timeline: e.timeline || {}
+	};
+}
+
 export async function getLocationInfo(id: number): Promise<LocationInfo> {
 	const data = await gql<{ location: RawLocation }>(
 		`query ($id: PositiveInt) {

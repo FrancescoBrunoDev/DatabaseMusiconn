@@ -7,6 +7,11 @@ import { filters } from '$databaseMusiconn/stores/storeFilters';
 import { get, writable } from 'svelte/store';
 
 const fetchedEvents = writable<Events>(undefined);
+
+/** Per-year event histogram fetched cheaply from the new API's `timeline` field
+ * before the detailed event list arrives. Used to render the line graph
+ * instantly while the full events stream in. */
+const timeline = writable<{ [year: string]: number }>({});
 // Create a more efficient cache with loading states
 const allTitles = writable<allTitles>({
 	work: {},
@@ -489,5 +494,6 @@ export {
 	preloadTitlesForEvents,
 	projectID,
 	startYear,
+	timeline,
 	useBounderiesYears
 };
