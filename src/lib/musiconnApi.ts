@@ -126,43 +126,40 @@ export async function gql<T = any>(
 }
 
 /** Selection set shared by every event fetch (resolving a legacy `EventItem`). */
+// Trimmed to the minimum fields the legacy `EventItem` resharper needs: titles are fetched
+// separately via `getTitlesByIds`, and composer detection only needs the subject id (996).
 const EVENT_SELECTION = `
-	id title date dateYear dateMonth dateDay dateFull
-	location { id title }
-	involvedPersons { person { id } subjects { id title } order }
+	id date dateYear
+	location { id }
+	involvedPersons { person { id } subjects { id } order }
 	performances {
 		order
-		work { id title involvedPersons { person { id } subjects { id title } order } }
-		involvedPersons { person { id } subjects { id title } order }
-		involvedCorporations { corporation { id } subjects { id title } order }
+		work { id involvedPersons { person { id } subjects { id } order } }
+		involvedPersons { person { id } subjects { id } order }
+		involvedCorporations { corporation { id } subjects { id } order }
 	}
-	involvedCorporations { corporation { id } subjects { id title } order }
-	sources { source { id } order citations { page url } }
+	involvedCorporations { corporation { id } subjects { id } order }
+	sources { source { id } citations { page url } }
 `;
 
 /** Response of an `eventList` page for the shape we request. */
 type RawEvent = {
 	id: number;
-	title: string;
 	date: number | null;
 	dateYear: string | null;
-	dateMonth: string | null;
-	dateDay: string | null;
-	dateFull: string | null;
-	location: { id: number; title: string };
-	involvedPersons: { person: { id: number }; subjects: { id: number; title: string }[]; order: number }[];
+	location: { id: number };
+	involvedPersons: { person: { id: number }; subjects: { id: number; title?: string }[]; order: number }[];
 	performances: {
 		order: number;
 		work: {
 			id: number;
-			title: string;
-			involvedPersons: { person: { id: number }; subjects: { id: number; title: string }[]; order: number }[];
+			involvedPersons: { person: { id: number }; subjects: { id: number; title?: string }[]; order: number }[];
 		};
-		involvedPersons: { person: { id: number }; subjects: { id: number; title: string }[]; order: number }[];
-		involvedCorporations: { corporation: { id: number }; subjects: { id: number; title: string }[]; order: number }[];
+		involvedPersons: { person: { id: number }; subjects: { id: number; title?: string }[]; order: number }[];
+		involvedCorporations: { corporation: { id: number }; subjects: { id: number; title?: string }[]; order: number }[];
 	}[];
-	involvedCorporations: { corporation: { id: number }; subjects: { id: number; title: string }[]; order: number }[];
-	sources: { source: { id: number }; order: number; citations: { page: string | null; url: string | null }[] }[];
+	involvedCorporations: { corporation: { id: number }; subjects: { id: number; title?: string }[]; order: number }[];
+	sources: { source: { id: number }; citations: { page: string | null; url: string | null }[] }[];
 };
 
 /** Reshape a raw GraphQL event into the legacy `EventItem` type. */
@@ -221,11 +218,7 @@ function reshapeEvent(ev: RawEvent): EventItem {
  * already reshaped into the legacy `EventItem` type.
  */
 export async function getEventsForLocation(locationId: number): Promise<EventItem[]> {
-	const all: EventItem[] = [];
-	let page = 1;
-	let totalPages = 1;
-	// Loop with an upper bound to avoid runaway pagination on unexpected server responses.
-	while (page <= totalPages && page <= 10000) {
+	const fetchPage = async (page: number) => {
 		const data = await gql<{ eventList: { list: RawEvent[]; pageInfo: { totalPages: number } } }>(
 			`query ($page: PositiveInt, $size: PositiveInt) {
 				eventList(page: $page, pageSize: $size, sort: DATE_ASC, filters: "locationId:${locationId}") {
@@ -233,13 +226,42 @@ export async function getEventsForLocation(locationId: number): Promise<EventIte
 					pageInfo { totalPages }
 				}
 			}`,
-			{ page, size: PAGE_SIZE }
+			{ page, size: PAGE_SIZE },
+			3,
+			60000
 		);
-		const list = data.eventList?.list || [];
-		for (const ev of list) all.push(reshapeEvent(ev));
-		totalPages = data.eventList?.pageInfo?.totalPages ?? totalPages;
-		page++;
+		return data.eventList;
+	};
+
+	// Fetch the first page to learn the total page count, then fetch the remaining
+	// pages concurrently. Each page request resolves its own slice of events in order
+	// so the final array stays sorted by date.
+	const first = await fetchPage(1);
+	const totalPages = Math.min(first?.pageInfo?.totalPages ?? 1, 10000);
+	if (totalPages <= 1) {
+		return (first?.list || []).map(reshapeEvent);
 	}
+
+	const pages: { page: number; list: RawEvent[] }[] = [{ page: 1, list: first?.list || [] }];
+	const remaining: number[] = [];
+	for (let p = 2; p <= totalPages; p++) remaining.push(p);
+
+	// The GraphQL server partially serializes concurrent requests, but firing all pages
+	// at once is still faster than waiting sequentially. Bound the wave to avoid
+	// tripping aggressive rate limits on very large locations.
+	const concurrency = Math.min(12, remaining.length);
+	for (let i = 0; i < remaining.length; i += concurrency) {
+		const batch = remaining.slice(i, i + concurrency);
+		const results = await Promise.all(batch.map((p) => fetchPage(p).catch(() => null)));
+		results.forEach((res, idx) => {
+			pages.push({ page: batch[idx], list: res?.list || [] });
+		});
+	}
+
+	// Reassemble in page order to preserve DATE_ASC sorting.
+	pages.sort((a, b) => a.page - b.page);
+	const all: EventItem[] = [];
+	for (const { list } of pages) for (const ev of list) all.push(reshapeEvent(ev));
 	return all;
 }
 
