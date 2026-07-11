@@ -1,4 +1,7 @@
-import { urlBaseAPIMusiconn } from '$databaseMusiconn/states/stateGeneral.svelte';
+import {
+	getPersonForFilter,
+	getWorkForFilter
+} from '$databaseMusiconn/lib/musiconnApi';
 import { fetchedEvents } from '$databaseMusiconn/stores/storeEvents';
 import { updateFilteredEventsAndUdateDataForGraph } from '$databaseMusiconn/stores/storeGraph';
 import { persistStore } from '$databaseMusiconn/utils/storeUtils';
@@ -291,7 +294,7 @@ const addFilterElement = async (selected: any, method?: Method) => {
 	updateFilteredEventsAndUdateDataForGraph();
 };
 
-const formatPersonName = (person: { name: { split: (arg0: string) => [any, any] } }) => {
+const formatPersonName = (person: { name: string }) => {
 	const [lastName, firstName] = person.name.split(',');
 	const abbreviatedFirstName = firstName
 		.trim()
@@ -301,17 +304,18 @@ const formatPersonName = (person: { name: { split: (arg0: string) => [any, any] 
 	return { lastName, firstName, abbreviatedFirstName };
 };
 
+const formatIntDate = (dateInt: number | null | undefined): string | undefined => {
+	if (dateInt == null || Number.isNaN(dateInt)) return undefined;
+	const s = String(dateInt).padStart(8, '0');
+	return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
+};
+
 const formatFilter = async (filter: Filter) => {
 	if (filter.entity === 'composer' || filter.entity === 'person') {
-		const res = await fetch(
-			`${urlBaseAPIMusiconn}?action=get&person=${filter.id}&props=biography|names&format=json`
-		);
-
-		const { person } = await res.json();
-		const { biography, names } = person[filter.id];
-		const { lastName, firstName, abbreviatedFirstName } = formatPersonName(names[0]);
-		const birth = biography?.birth?.dates?.[0]?.date;
-		const death = biography?.death?.dates?.[0]?.date;
+		const { title, dateOfBirth, dateOfDeath } = await getPersonForFilter(Number(filter.id));
+		const { lastName, firstName, abbreviatedFirstName } = formatPersonName({ name: title });
+		const birth = formatIntDate(dateOfBirth);
+		const death = formatIntDate(dateOfDeath);
 
 		return {
 			id: filter.id,
@@ -322,18 +326,15 @@ const formatFilter = async (filter: Filter) => {
 			color: filter.color
 		};
 	} else if (filter.entity === 'work') {
-		const res = await fetch(
-			`${urlBaseAPIMusiconn}?action=get&work=${filter.id}&props=names|composers&format=json`
-		);
-		const { work } = await res.json();
-		const title = work[filter.id].names[0].name;
-		const composerId = work[filter.id].composers[0].person;
-		const { lastName, abbreviatedFirstName } = await fetch(
-			`${urlBaseAPIMusiconn}?action=get&person=${composerId}&props=names&format=json`
-		)
-			.then((res) => res.json())
-			.then((res) => res.person[composerId].names[0])
-			.then(formatPersonName);
+		const { title, composerId } = await getWorkForFilter(Number(filter.id));
+		let lastName = '';
+		let abbreviatedFirstName = '';
+		if (composerId != null) {
+			const composer = await getPersonForFilter(composerId);
+			const formatted = formatPersonName({ name: composer.title });
+			lastName = formatted.lastName;
+			abbreviatedFirstName = formatted.abbreviatedFirstName;
+		}
 		return {
 			id: filter.id,
 			entity: filter.entity,

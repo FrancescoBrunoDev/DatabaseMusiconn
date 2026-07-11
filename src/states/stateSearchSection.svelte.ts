@@ -1,5 +1,8 @@
-import { urlBaseAPIMusiconn } from '$databaseMusiconn/states/stateGeneral.svelte';
-import { projectID } from '$databaseMusiconn/stores/storeEvents';
+import {
+	getSuggestionCount,
+	preloadEntityIndex,
+	suggestByPrefix
+} from '$databaseMusiconn/lib/musiconnApi';
 import { entitiesForSearchBox, filters } from '$databaseMusiconn/stores/storeFilters';
 import { get } from 'svelte/store';
 
@@ -57,55 +60,22 @@ function setIsLoadingSuggestions({ value }: { value: boolean }) {
 	isLoadingSuggestions = value;
 }
 
-// Helper function to get suggestion count from API
-async function getSuggestionCount(suggestionID: number, entity: string): Promise<number> {
-	try {
-		const _projectID: number | null = get(projectID);
-		const res = await fetch(
-			`${urlBaseAPIMusiconn}?action=query&${entity}=${suggestionID}&entity=none${_projectID ? `&project=${_projectID}` : ''}&format=json`
-		);
-
-		if (res.ok) {
-			const { count } = await res.json();
-			return Number(count.event) || 0;
-		} else {
-			console.error('Fetch failed', res.status, res.statusText);
-			return 0;
-		}
-	} catch (error) {
-		console.error('Error fetching suggestion count:', error);
-		return 0;
-	}
-}
-
-// Helper function to add counts to suggestions and sort them
+// Helper function to add counts to suggestions and sort them.
+// Counts come from the new GraphQL API (`events(personId|workId|...){ count }`),
+// replacing the legacy `action=query&...&entity=none` call.
 async function enrichAndSortSuggestions(
 	baseSuggestions: AutocompleteResult[]
 ): Promise<SuggestionWithCount[]> {
 	const suggestionsWithCounts = await Promise.all(
 		baseSuggestions.map(async (suggestion): Promise<SuggestionWithCount> => {
-			const count = await getSuggestionCount(Number(suggestion[2]), suggestion[1] || '');
+			const entity = (suggestion[1] as Entity) || 'person';
+			const count = await getSuggestionCount(entity, Number(suggestion[2]));
 			return { ...suggestion, count };
 		})
 	);
 
 	// Sort by count in descending order (highest count first)
 	return suggestionsWithCounts.sort((a, b) => (b.count || 0) - (a.count || 0));
-}
-
-// Helper function to fetch suggestions from API
-async function fetchSuggestions(
-	entities: string,
-	withProjectID: boolean = true
-): Promise<AutocompleteResult[]> {
-	const _projectID: number | null = get(projectID);
-	const projectParam = withProjectID && _projectID ? `&project=${_projectID}` : '';
-
-	const res = await fetch(
-		`${urlBaseAPIMusiconn}?action=autocomplete&title=${inputValue}&entities=${entities}&max=20${projectParam}&format=json`
-	);
-
-	return await res.json();
 }
 
 // Helper function to remove suggestions that are already in filters
@@ -135,8 +105,8 @@ function removeFormSuggestionIfInFilters(results: AutocompleteResult[]): Autocom
 }
 
 const autocomplete = async () => {
-	const _entitiesForSearchBox: string[] = get(entitiesForSearchBox);
-	const entities = _entitiesForSearchBox.join('|');
+	const _entitiesForSearchBox: Entity[] = get(entitiesForSearchBox);
+	const entities = _entitiesForSearchBox;
 
 	// If input is empty or entities are not selected, clear suggestions
 	if (entities.length === 0 || inputValue.trim() === '') {
@@ -149,8 +119,17 @@ const autocomplete = async () => {
 	isLoadingSuggestions = true;
 
 	try {
-		// First, try to fetch suggestions with project ID
-		let results = await fetchSuggestions(entities, true);
+		// The new API has no server-side name search, so suggestions come from a
+		// client-side prefix index that is preloaded once and cached (IndexedDB).
+		// Kick off preloading for every enabled entity kind (no-op if already loaded).
+		await Promise.all(entities.map((entity) => preloadEntityIndex(entity)));
+
+		// Prefix-match over the cached, title-sorted index (legacy shape [title, entity, id]).
+		const results = suggestByPrefix(inputValue, entities, 20);
+		if (!results || results.length === 0) {
+			suggestions = [];
+			return;
+		}
 
 		// Filter out suggestions that are already in filters
 		const filteredSuggestions = removeFormSuggestionIfInFilters(results);
@@ -160,30 +139,11 @@ const autocomplete = async () => {
 
 		// Clear suggestions first to trigger out animations, then set new ones to trigger in animations
 		suggestions = [];
-		// Use a small delay to ensure the DOM updates and out animations complete
-		await new Promise(resolve => setTimeout(resolve, 50));
+		await new Promise((resolve) => setTimeout(resolve, 50));
 		suggestions = enrichedSuggestions;
 	} catch (error) {
-		console.error(
-			'Error fetching suggestions with project ID:',
-			error,
-			'trying without project ID'
-		);
-
-		try {
-			// Fallback: try without project ID
-			const results = await fetchSuggestions(entities, false);
-			const filteredSuggestions = removeFormSuggestionIfInFilters(results);
-			const enrichedSuggestions = await enrichAndSortSuggestions(filteredSuggestions);
-
-			// Clear suggestions first, then set new ones to trigger animations
-			suggestions = [];
-			await new Promise(resolve => setTimeout(resolve, 50));
-			suggestions = enrichedSuggestions;
-		} catch (fallbackError) {
-			console.error('Error fetching suggestions without project ID:', fallbackError);
-			suggestions = [];
-		}
+		console.error('Error fetching suggestions:', error);
+		suggestions = [];
 	} finally {
 		// Clear loading state
 		isLoadingSuggestions = false;

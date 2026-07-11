@@ -1,5 +1,8 @@
 import { browser } from '$app/environment';
-import { urlBaseAPIMusiconn } from '$databaseMusiconn/states/stateGeneral.svelte';
+import {
+	getGeometries as getGeometriesGraphql,
+	getTitlesByIds
+} from '$databaseMusiconn/lib/musiconnApi';
 import { filters } from '$databaseMusiconn/stores/storeFilters';
 import { get, writable } from 'svelte/store';
 
@@ -71,10 +74,8 @@ const getTitles = async (event: EventItem) => {
 };
 
 const getTitle = async (allUids: string[], kind: Entity) => {
-	let kindForApi: Entity = kind;
-	if (kind === 'composer') {
-		kindForApi = 'person';
-	}
+	// `kind` is the legacy entity kind; the GraphQL client maps `composer` -> `person`
+	// titles internally.
 
 	// Filter out UIDs that already exist or are currently loading
 	const existingTitles = get(allTitles)[kind] || {};
@@ -108,19 +109,7 @@ const getTitle = async (allUids: string[], kind: Entity) => {
 
 		// Process all batches in parallel
 		const results = await Promise.all(
-			batches.map(async (batchUids) => {
-				const uids = batchUids.length > 1 ? batchUids.join('|') : batchUids[0];
-				const res = await fetch(
-					`${urlBaseAPIMusiconn}?action=get&${kindForApi}=${uids}&props=title&format=json`
-				);
-
-				if (!res.ok) {
-					throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-				}
-
-				const json = await res.json();
-				return json[kindForApi] || {};
-			})
+			batches.map(async (batchUids) => getTitlesByIds(kind, batchUids))
 		);
 
 		// Merge all batch results
@@ -159,12 +148,7 @@ const getTitle = async (allUids: string[], kind: Entity) => {
 };
 
 const getGeometries = async (locationID: number) => {
-	const res = await fetch(
-		`${urlBaseAPIMusiconn}?action=get&location=${locationID}&props=geometries&format=json`
-	);
-	const json = await res.json();
-
-	return json.location[locationID].geometries;
+	return await getGeometriesGraphql(locationID);
 };
 
 const getUidsPerEntity = async (kind: Entity, event: EventItem) => {

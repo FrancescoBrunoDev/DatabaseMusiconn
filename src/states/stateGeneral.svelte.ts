@@ -1,7 +1,9 @@
 import { browser } from '$app/environment';
 import { LocalStorage } from '$lib/storage.svelte';
 
-const urlBaseAPIMusiconn = $state('https://performance.musiconn.de/api');
+// The old REST API (https://performance.musiconn.de/api) is gone. The new musiconn API is a
+// GraphQL endpoint; see ../lib/musiconnApi.ts for usage.
+const urlBaseAPIMusiconn = $state('https://edit.performance.musiconn.de/musiconn/api');
 
 let locale = browser ? new LocalStorage<Locales>('lang', 'en') : { current: 'en' as Locales };
 let themeKind = browser ? new LocalStorage<ThemeKind>('theme', 'base') : { current: 'base' as ThemeKind };
