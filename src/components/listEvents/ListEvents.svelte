@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { filteredEvents, showEventAsModal } from '$databaseMusiconn/stores/storeFilters';
-	import { fetchedEvents } from '$databaseMusiconn/stores/storeEvents';
+	import { eventsLoadProgress, fetchedEvents } from '$databaseMusiconn/stores/storeEvents';
 	import { Loader2 } from 'lucide-svelte';
 	import Event from '$databaseMusiconn/components/listEvents/Event.svelte';
 	import SearchSection from '$databaseMusiconn/components/searchAndFilters/SearchSection.svelte';
@@ -53,12 +53,21 @@
 </script>
 
 <div class="flex flex-col">
-	{#if $fetchedEvents === undefined}
-		<div class="text-secondary flex h-40 w-full items-center justify-center gap-2">
-			<Loader2 class="h-6 w-6 animate-spin" />
-			<span>Loading events…</span>
+	{#if $eventsLoadProgress < 1}
+		<div class="text-secondary sticky top-0 z-20 mb-3 flex flex-col gap-2 rounded-xl border-2 bg-background/80 p-4 backdrop-blur dark:bg-dark-background/80">
+			<div class="flex items-center justify-center gap-2">
+				<Loader2 class="h-5 w-5 animate-spin" />
+				<span class="text-sm font-medium">Loading events…
+					{Math.round($eventsLoadProgress * 100)}%</span>
+			</div>
+			<div class="bg-border dark:bg-dark-border h-2 w-full overflow-hidden rounded-full">
+				<div
+					class="bg-primary dark:bg-dark-primary h-full rounded-full transition-all duration-300 ease-out"
+					style={`width: ${Math.max(3, $eventsLoadProgress * 100)}%`}
+				></div>
+			</div>
 		</div>
-	{:else}
+	{/if}
 	{#each Object.keys($filteredEvents) as year}
 		<div class="flex flex-col">
 			<div class="flex flex-row gap-2 align-middle">
@@ -84,7 +93,6 @@
 		</div>
 		</div>
 	{/each}
-	{/if}
 </div>
 
 {#if $showEventAsModal}

@@ -217,6 +217,28 @@ function reshapeEvent(ev: RawEvent): EventItem {
  * Fetch all events for a location (recursively, including child locations),
  * already reshaped into the legacy `EventItem` type.
  */
+/** Fetch a single reshaped page of events (100 items). Used to stream events
+ * page-by-page so the UI can show real progress and progressively fill the
+ * event list while later pages are still loading.
+ */
+export async function getEventPage(
+	locationId: number,
+	page: number,
+	pageSize: number = PAGE_SIZE
+): Promise<EventItem[]> {
+	const data = await gql<{ eventList: { list: RawEvent[] } }>(
+		`query ($page: PositiveInt, $size: PositiveInt) {
+			eventList(page: $page, pageSize: $size, sort: DATE_ASC, filters: "locationId:${locationId}") {
+				list { ${EVENT_SELECTION} }
+			}
+		}`,
+		{ page, size: pageSize },
+		3,
+		60000
+	);
+	return (data.eventList?.list || []).map(reshapeEvent);
+}
+
 export async function getEventsForLocation(locationId: number): Promise<EventItem[]> {
 	const fetchPage = async (page: number) => {
 		const data = await gql<{ eventList: { list: RawEvent[]; pageInfo: { totalPages: number } } }>(

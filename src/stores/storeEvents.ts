@@ -12,6 +12,32 @@ const fetchedEvents = writable<Events>(undefined);
  * before the detailed event list arrives. Used to render the line graph
  * instantly while the full events stream in. */
 const timeline = writable<{ [year: string]: number }>({});
+
+/** Events load progress in the range 0..1 (1 == fully loaded). Drives the
+ * progress bar shown while event pages stream in. */
+const eventsLoadProgress = writable<number>(1);
+
+/**
+ * Merge a page of reshaped `EventItem`s into the `fetchedEvents` store, grouped
+ * by year. Called as each streamed event page resolves so the event list grows
+ * progressively instead of appearing all at once after the full fetch.
+ */
+const mergeEvents = (pageEvents: EventItem[]) => {
+	const current = get(fetchedEvents) || {};
+	let changed = false;
+	for (const ev of pageEvents) {
+		const d = ev?.dates?.[0]?.date;
+		if (!d) continue;
+		const year = d.slice(0, 4);
+		if (!current[year]) {
+			current[year] = [];
+			changed = true;
+		}
+		current[year].push(ev);
+		changed = true;
+	}
+	if (changed) fetchedEvents.set({ ...current });
+};
 // Create a more efficient cache with loading states
 const allTitles = writable<allTitles>({
 	work: {},
@@ -479,6 +505,7 @@ export {
 	allTitles,
 	clearFailedCache,
 	endYear,
+	eventsLoadProgress,
 	fetchedEvents,
 	getCacheStats,
 	getCountersForEvent,
@@ -491,6 +518,7 @@ export {
 	getTitleStringAsync,
 	mainLocationID,
 	mainLocationInfo,
+	mergeEvents,
 	preloadTitlesForEvents,
 	projectID,
 	startYear,
