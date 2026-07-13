@@ -24,8 +24,18 @@
  */
 import { browser } from '$app/environment';
 
-/** New GraphQL endpoint. */
+/** New GraphQL endpoint (used for server-side fetches). */
 export const MUSICONN_API_URL = 'https://edit.performance.musiconn.de/musiconn/api';
+
+/**
+ * Endpoint used by the GraphQL client. Server-side (SSR, server load, the
+ * /api/musiconn proxy) calls the musiconn host directly. In the browser we
+ * route through the same-origin `/api/musiconn` proxy instead: the new host's
+ * CORS preflight omits `Access-Control-allow-headers`, so cross-origin
+ * `Content-Type: application/json` POSTs are blocked. Going same-origin avoids
+ * the preflight entirely and keeps title/count/autocomplete lookups working.
+ */
+const GQL_ENDPOINT = browser ? '/api/musiconn' : MUSICONN_API_URL;
 
 /** GraphQL subject id for "Komposition (Musik)" used to detect work composers. */
 const COMPOSITION_SUBJECT_ID = 996;
@@ -94,7 +104,7 @@ export async function gql<T = any>(
 		let lastError: unknown;
 		for (let attempt = 0; attempt < retries; attempt++) {
 			try {
-				const res = await fetch(MUSICONN_API_URL, {
+				const res = await fetch(GQL_ENDPOINT, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ query, variables }),

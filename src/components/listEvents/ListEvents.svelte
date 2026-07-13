@@ -54,7 +54,7 @@
 
 <div class="flex flex-col">
 	{#if $eventsLoadProgress < 1}
-		<div class="text-secondary sticky top-0 z-20 mb-3 flex flex-col gap-2 rounded-xl border-2 bg-background/80 p-4 backdrop-blur dark:bg-dark-background/80">
+		<div class="text-secondary sticky top-0 z-20 mx-auto mb-3 flex w-full max-w-md flex-col gap-2 rounded-xl border-2 bg-background/80 p-4 backdrop-blur dark:bg-dark-background/80">
 			<div class="flex items-center justify-center gap-2">
 				<Loader2 class="h-5 w-5 animate-spin" />
 				<span class="text-sm font-medium">Loading events…
