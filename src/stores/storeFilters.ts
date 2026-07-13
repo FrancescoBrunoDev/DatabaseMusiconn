@@ -266,14 +266,30 @@ const addFilterElement = async (selected: any, method?: Method) => {
 		filter.entity = await isMoreAPersonOrAComposer(Number(filter.id));
 	}
 
-	const formattedFilter: Filter = (await formatFilter(filter)) ?? {
-		id: filter.id,
-		entity: filter.entity,
-		name: filter.name,
-		birth: undefined,
-		death: undefined,
-		color: filter.color
-	};
+	// formatFilter can throw if the GraphQL lookup fails; always fall back to a
+	// minimal filter so the user's selection is never silently lost.
+	let formattedFilter: Filter;
+	try {
+		formattedFilter =
+			(await formatFilter(filter)) ?? {
+				id: filter.id,
+				entity: filter.entity,
+				name: filter.name,
+				birth: undefined,
+				death: undefined,
+				color: filter.color
+			};
+	} catch (error) {
+		console.error('formatFilter failed, using fallback:', error);
+		formattedFilter = {
+			id: filter.id,
+			entity: filter.entity,
+			name: filter.name,
+			birth: undefined,
+			death: undefined,
+			color: filter.color
+		};
+	}
 
 	filters.update((currentFilters) => {
 		const filterExistsInMethod = currentFilters[_method as keyof Filters]?.some(
@@ -295,13 +311,15 @@ const addFilterElement = async (selected: any, method?: Method) => {
 };
 
 const formatPersonName = (person: { name: string }) => {
-	const [lastName, firstName] = person.name.split(',');
-	const abbreviatedFirstName = firstName
+	const name = person.name || '';
+	const [lastName, firstName] = name.split(',');
+	const abbreviatedFirstName = (firstName || '')
 		.trim()
 		.split(' ')
-		.map((name: string) => `${name[0]}.`)
+		.filter(Boolean)
+		.map((part: string) => `${part[0]}.`)
 		.join(' ');
-	return { lastName, firstName, abbreviatedFirstName };
+	return { lastName: lastName || '', firstName: firstName || '', abbreviatedFirstName };
 };
 
 const formatIntDate = (dateInt: number | null | undefined): string | undefined => {
@@ -475,6 +493,12 @@ const isMoreAPersonOrAComposer = async (id: number) => {
 			resolve(res);
 		});
 	});
+	// If events haven't loaded yet (undefined/empty during streaming), default to
+	// 'person' — the entity the user explicitly selected — instead of 'composer'.
+	// Without this, 0 > 0 is false and every person is misclassified as composer.
+	if (!_fetchedEvents || Object.keys(_fetchedEvents).length === 0) {
+		return 'person';
+	}
 	let countPerson = 0;
 	let countComposer = 0;
 	for (const key in _fetchedEvents) {
