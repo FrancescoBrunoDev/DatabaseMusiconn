@@ -19,6 +19,7 @@
 	} from '$databaseMusiconn/stores/storeEvents';
 	import { onMount } from 'svelte';
 	import { Loader2 } from 'lucide-svelte';
+	import { preloadEntityIndex } from '$databaseMusiconn/lib/musiconnApi';
 
 	let isOver = $state(false);
 	let opacitySearchSection = $derived(isOver ? 0.3 : 1);
@@ -73,6 +74,11 @@
 
 	onMount(() => {
 		fetchOverpassData({ lat: 51.96245420666666, lng: 7.627307654999999 });
+		// Proactively start building the autocomplete indexes in the background so
+		// suggestions are (at least partially) available before the user types.
+		(['person', 'work', 'corporation', 'location'] as Entity[]).forEach((entity) => {
+			preloadEntityIndex(entity).catch((e) => console.error('preload', entity, e));
+		});
 	});
 </script>
 

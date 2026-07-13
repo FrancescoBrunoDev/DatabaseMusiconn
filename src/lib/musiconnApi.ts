@@ -558,7 +558,10 @@ async function saveIndexToDb(entity: Entity, entries: AcEntry[]): Promise<void> 
 	});
 }
 
-/** Preload all entries of the given entity kind into the in-memory + IndexedDB cache. */
+/** Preload all entries of the given entity kind into the in-memory + IndexedDB cache.
+ * Populates the in-memory index INCREMENTALLY: as each batch of pages resolves
+ * the index is re-sorted and published, so `suggestByPrefix` can match against
+ * whatever has loaded so far instead of waiting for the full preload. */
 export async function preloadEntityIndex(entity: Entity): Promise<AcEntry[]> {
 	const cached = inMemoryIndex.get(entity);
 	if (cached && cached.length > 0) return cached;
@@ -579,7 +582,8 @@ export async function preloadEntityIndex(entity: Entity): Promise<AcEntry[]> {
 	const config = ENTITY_LIST[entity];
 	if (!config) return [];
 
-	// Try persisted cache first (versioned).
+	// Try persisted cache first (versioned). On a cache hit the index is ready
+	// synchronously and no network requests are made.
 	if (browser && localStorage.getItem(AUTOCOMPLETE_VERSION_KEY) === AUTOCOMPLETE_VERSION) {
 		const persisted = await loadIndexFromDb(entity);
 		if (persisted && persisted.length > 0) {
@@ -589,7 +593,12 @@ export async function preloadEntityIndex(entity: Entity): Promise<AcEntry[]> {
 		}
 	}
 
-	const entries: AcEntry[] = [];
+	const publish = (entries: AcEntry[]) => {
+		entries.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
+		inMemoryIndex.set(entity, entries);
+		if (entity === 'person') inMemoryIndex.set('composer', entries);
+	};
+
 	const fetchPage = async (page: number) => {
 		const data = await gql<{ [k: string]: { list: { id: number; title: string }[]; pageInfo: { totalPages: number } } }>(
 			`query ($page: PositiveInt) { ${config.query}(page: $page, pageSize: 100, sort: ${config.sort}) { list { id title } pageInfo { totalPages } } }`,
@@ -597,14 +606,22 @@ export async function preloadEntityIndex(entity: Entity): Promise<AcEntry[]> {
 		);
 		return data[config.query];
 	};
+
+	const entries: AcEntry[] = [];
+	const push = (page?: any) => {
+		let added = false;
+		for (const item of page?.list || []) {
+			if (item.title) {
+				entries.push({ id: item.id, title: item.title, entity });
+				added = true;
+			}
+		}
+		if (added) publish(entries);
+	};
+
 	try {
 		const first = await fetchPage(1);
 		const totalPages = first?.pageInfo?.totalPages ?? 1;
-		const push = (page?: any) => {
-			for (const item of page?.list || []) {
-				if (item.title) entries.push({ id: item.id, title: item.title, entity });
-			}
-		};
 		push(first);
 
 		// Fetch remaining pages concurrently (bounded) to keep the one-time preload fast.
@@ -614,23 +631,21 @@ export async function preloadEntityIndex(entity: Entity): Promise<AcEntry[]> {
 		for (let i = 0; i < pages.length; i += concurrency) {
 			const batch = pages.slice(i, i + concurrency);
 			const results = await Promise.all(batch.map((p) => fetchPage(p).catch(() => null)));
-			// Re-sort this batch's results back into page order before pushing.
 			results.forEach((r) => push(r));
 		}
 	} catch (error) {
 		console.error(`Failed to preload ${entity} index:`, error);
 	}
 
-	// entries arrive sorted by title already; keep them sorted (case-insensitive).
-	entries.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
-
-	inMemoryIndex.set(entity, entries);
-	if (entity === 'person') inMemoryIndex.set('composer', entries);
+	// Final sort + persist to IndexedDB.
+	publish(entries);
 	if (browser) {
 		saveIndexToDb(entity, entries).catch(() => {});
 		localStorage.setItem(AUTOCOMPLETE_VERSION_KEY, AUTOCOMPLETE_VERSION);
 	}
 
+	// `done` is tracked so a future caller can tell the preload is finished; the
+	// value itself is not otherwise used.
 	return entries;
 }
 

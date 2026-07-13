@@ -104,6 +104,35 @@ function removeFormSuggestionIfInFilters(results: AutocompleteResult[]): Autocom
 	return _results;
 }
 
+let lastAutocompleteToken = 0;
+
+const computeSuggestions = async (token: number) => {
+	const _entitiesForSearchBox: Entity[] = get(entitiesForSearchBox);
+	const entities = _entitiesForSearchBox;
+	const value = inputValue;
+
+	if (entities.length === 0 || value.trim() === '') {
+		if (token === lastAutocompleteToken) suggestions = [];
+		return;
+	}
+
+	// Prefix-match over whatever has loaded so far (the index populates
+	// incrementally as pages arrive).
+	const results = suggestByPrefix(value, entities, 20);
+	const filteredSuggestions = removeFormSuggestionIfInFilters(results);
+	if (filteredSuggestions.length === 0) {
+		if (token === lastAutocompleteToken) suggestions = [];
+		return;
+	}
+
+	const enrichedSuggestions = await enrichAndSortSuggestions(filteredSuggestions);
+	if (token !== lastAutocompleteToken) return; // a newer keystroke won
+
+	suggestions = [];
+	await new Promise((resolve) => setTimeout(resolve, 50));
+	if (token === lastAutocompleteToken) suggestions = enrichedSuggestions;
+};
+
 const autocomplete = async () => {
 	const _entitiesForSearchBox: Entity[] = get(entitiesForSearchBox);
 	const entities = _entitiesForSearchBox;
@@ -118,35 +147,29 @@ const autocomplete = async () => {
 	// Set loading state
 	isLoadingSuggestions = true;
 
+	const token = ++lastAutocompleteToken;
+
 	try {
-		// The new API has no server-side name search, so suggestions come from a
-		// client-side prefix index that is preloaded once and cached (IndexedDB).
-		// Kick off preloading for every enabled entity kind (no-op if already loaded).
-		await Promise.all(entities.map((entity) => preloadEntityIndex(entity)));
+		// Kick off preloading for every enabled entity kind. It populates the
+		// in-memory index INCREMENTALLY, so we can show suggestions from whatever has
+		// loaded so far instead of blocking ~80s on the full preload.
+		const preload = Promise.all(entities.map((entity) => preloadEntityIndex(entity)));
 
-		// Prefix-match over the cached, title-sorted index (legacy shape [title, entity, id]).
-		const results = suggestByPrefix(inputValue, entities, 20);
-		if (!results || results.length === 0) {
-			suggestions = [];
-			return;
+		// First pass: match against whatever is already in the index (cached pages,
+		// persisted IndexedDB cache, or pages that already streamed in).
+		await computeSuggestions(token);
+
+		// Once the full preload finishes, recompute: more entries will be available,
+		// potentially surfacing matches that weren't there on the first pass.
+		await preload;
+		if (token === lastAutocompleteToken) {
+			await computeSuggestions(token);
 		}
-
-		// Filter out suggestions that are already in filters
-		const filteredSuggestions = removeFormSuggestionIfInFilters(results);
-
-		// Enrich with counts and sort by frequency
-		const enrichedSuggestions = await enrichAndSortSuggestions(filteredSuggestions);
-
-		// Clear suggestions first to trigger out animations, then set new ones to trigger in animations
-		suggestions = [];
-		await new Promise((resolve) => setTimeout(resolve, 50));
-		suggestions = enrichedSuggestions;
 	} catch (error) {
 		console.error('Error fetching suggestions:', error);
-		suggestions = [];
+		if (token === lastAutocompleteToken) suggestions = [];
 	} finally {
-		// Clear loading state
-		isLoadingSuggestions = false;
+		if (token === lastAutocompleteToken) isLoadingSuggestions = false;
 	}
 };
 
