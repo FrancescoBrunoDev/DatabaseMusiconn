@@ -1,64 +1,70 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { filteredEvents, showEventAsModal } from '$databaseMusiconn/stores/storeFilters';
-	import { eventsLoadProgress, fetchedEvents } from '$databaseMusiconn/stores/storeEvents';
-	import { Loader2 } from 'lucide-svelte';
-	import Event from '$databaseMusiconn/components/listEvents/Event.svelte';
-	import SearchSection from '$databaseMusiconn/components/searchAndFilters/SearchSection.svelte';
-	import {
-		setIsSearchSectionInEventsList,
-		getIsSearchSectionInEventsList,
-		getIsSearchSectionInEventsListOpen,
-		setIsSearchSectionInEventsListOpen
-	} from '$databaseMusiconn/states/stateSearchSection.svelte';
-	import { fly } from 'svelte/transition';
-	import { cubicInOut, cubicOut } from 'svelte/easing';
-	import { ChevronUp } from 'lucide-svelte';
-	import EventWithModal from '$databaseMusiconn/components/listEvents/EventWithModal.svelte';
-	import EventModal from '$databaseMusiconn/components/listEvents/EventModal.svelte';
+import { onMount } from 'svelte';
+import { filteredEvents, showEventAsModal } from '$databaseMusiconn/stores/storeFilters';
+import { eventsLoadProgress, fetchedEvents } from '$databaseMusiconn/stores/storeEvents';
+import { Loader2 } from 'lucide-svelte';
+import Event from '$databaseMusiconn/components/listEvents/Event.svelte';
+import SearchSection from '$databaseMusiconn/components/searchAndFilters/SearchSection.svelte';
+import {
+	setIsSearchSectionInEventsList,
+	getIsSearchSectionInEventsList,
+	getIsSearchSectionInEventsListOpen,
+	setIsSearchSectionInEventsListOpen
+} from '$databaseMusiconn/states/stateSearchSection.svelte';
+import { fly } from 'svelte/transition';
+import { cubicInOut, cubicOut } from 'svelte/easing';
+import { ChevronUp } from 'lucide-svelte';
+import EventWithModal from '$databaseMusiconn/components/listEvents/EventWithModal.svelte';
+import EventModal from '$databaseMusiconn/components/listEvents/EventModal.svelte';
 
-	let selectedEventModal: EventItem | null = $state(null);
-	let isModalOpen = $state(false);
-	let isSearchSectionInEventsList = $derived(getIsSearchSectionInEventsList());
-	let isSearchSectionInEventsListOpen = $derived(getIsSearchSectionInEventsListOpen());
+let selectedEventModal: EventItem | null = $state(null);
+let isModalOpen = $state(false);
+let isSearchSectionInEventsList = $derived(getIsSearchSectionInEventsList());
+let isSearchSectionInEventsListOpen = $derived(getIsSearchSectionInEventsListOpen());
 
-	function toggleSearchSection() {
-		setIsSearchSectionInEventsListOpen({ value: !isSearchSectionInEventsListOpen });
-	}
+let eventGroups = $derived(Object.entries($filteredEvents) as [string, EventItem[]][]);
 
-	onMount(() => {
-		const searchSection = document.getElementById('mainSearchSection');
+function toggleSearchSection() {
+	setIsSearchSectionInEventsListOpen({ value: !isSearchSectionInEventsListOpen });
+}
 
-		if (searchSection) {
-			const observer = new IntersectionObserver(
-				([entry]) => {
-					if (entry.isIntersecting) {
-						setIsSearchSectionInEventsList({ value: false });
+onMount(() => {
+	const searchSection = document.getElementById('mainSearchSection');
+
+	if (searchSection) {
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting) {
+					setIsSearchSectionInEventsList({ value: false });
+				} else {
+					if (Object.keys($filteredEvents).length > 4) {
+						setIsSearchSectionInEventsList({ value: true });
 					} else {
-						if (Object.keys($filteredEvents).length > 4) {
-							setIsSearchSectionInEventsList({ value: true });
-						} else {
-							setIsSearchSectionInEventsList({ value: false });
-						}
+						setIsSearchSectionInEventsList({ value: false });
 					}
-				},
-				{
-					threshold: 0.1
 				}
-			);
+			},
+			{
+				threshold: 0.1
+			}
+		);
 
-			observer.observe(searchSection);
-		}
-	});
+		observer.observe(searchSection);
+	}
+});
 </script>
 
 <div class="flex flex-col">
 	{#if $eventsLoadProgress < 1}
-		<div class="text-secondary sticky top-0 z-20 mx-auto mb-3 flex w-full max-w-md flex-col gap-2 rounded-xl border-2 bg-background/80 p-4 backdrop-blur dark:bg-dark-background/80">
+		<div
+			class="text-secondary bg-background/80 dark:bg-dark-background/80 sticky top-0 z-20 mx-auto mb-3 flex w-full max-w-md flex-col gap-2 rounded-xl border-2 p-4 backdrop-blur"
+		>
 			<div class="flex items-center justify-center gap-2">
 				<Loader2 class="h-5 w-5 animate-spin" />
-				<span class="text-sm font-medium">Loading events…
-					{Math.round($eventsLoadProgress * 100)}%</span>
+				<span class="text-sm font-medium"
+					>Loading events…
+					{Math.round($eventsLoadProgress * 100)}%</span
+				>
 			</div>
 			<div class="bg-border dark:bg-dark-border h-2 w-full overflow-hidden rounded-full">
 				<div
@@ -68,29 +74,25 @@
 			</div>
 		</div>
 	{/if}
-	{#each Object.keys($filteredEvents) as year}
+	{#each eventGroups as [year, yearEvents]}
 		<div class="flex flex-col">
 			<div class="flex flex-row gap-2 align-middle">
 				<div class="text-7xl">{year}</div>
-				<div>{$filteredEvents[year].length}</div>
+				<div>{yearEvents.length}</div>
 			</div>
 			<div class="flex flex-wrap items-start gap-2 pb-4 leading-tight">
-				{#each $filteredEvents[year].slice().sort((a, b) => {
-					const dateA = new Date(a.dates[0].date);
-					const dateB = new Date(b.dates[0].date);
-					return dateA.getTime() - dateB.getTime();
-				}) as event}
+				{#each yearEvents as event (event.uid)}
 					{#if $showEventAsModal}
 						<EventWithModal
 							bind:isEventOpen={isModalOpen}
 							bind:selectedEvent={selectedEventModal}
-							{event}
+							event={event}
 						/>
 					{:else}
-						<Event {event} isModalOpen={false} />
+						<Event event={event} isModalOpen={false} />
 					{/if}
 				{/each}
-		</div>
+			</div>
 		</div>
 	{/each}
 </div>

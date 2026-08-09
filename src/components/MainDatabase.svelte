@@ -1,85 +1,92 @@
 <script lang="ts">
-	import LineGraphD3 from '$databaseMusiconn/components/graphs/line/LineGraphD3.svelte';
-	import SearchSection from '$databaseMusiconn/components/searchAndFilters/SearchSection.svelte';
-	import { getIsSearchSectionInEventsList } from '$databaseMusiconn/states/stateSearchSection.svelte';
-	import {
-		selectedGraphType,
-		fetchOverpassData,
-		dataForLineGraph
-	} from '$databaseMusiconn/stores/storeGraph';
-	import GraphSelector from '$databaseMusiconn/components/graphs/GraphSelector.svelte';
-	import MapPMTiles from '$databaseMusiconn/components/graphs/map/MapPMTiles.svelte';
-	import PieChartContainer from '$databaseMusiconn/components/graphs/pie/PieChartContainer.svelte';
-	import TabViewContainer from '$databaseMusiconn/components/graphs/tab/TabViewContainer.svelte';
-	import { filteredEvents, buildStatistics } from '$databaseMusiconn/stores/storeFilters';
-	import {
-		getGeometries,
-		getTitle,
-		getTitleStringAsync
-	} from '$databaseMusiconn/stores/storeEvents';
-	import { onMount } from 'svelte';
-	import { Loader2 } from 'lucide-svelte';
-	import { preloadEntityIndex } from '$databaseMusiconn/lib/musiconnApi';
+import LineGraphD3 from '$databaseMusiconn/components/graphs/line/LineGraphD3.svelte';
+import SearchSection from '$databaseMusiconn/components/searchAndFilters/SearchSection.svelte';
+import { getIsSearchSectionInEventsList } from '$databaseMusiconn/states/stateSearchSection.svelte';
+import { selectedGraphType, dataForLineGraph } from '$databaseMusiconn/stores/storeGraph';
+import GraphSelector from '$databaseMusiconn/components/graphs/GraphSelector.svelte';
+import { filteredEvents, buildStatistics } from '$databaseMusiconn/stores/storeFilters';
+import { getGeometries, getTitleStringAsync } from '$databaseMusiconn/stores/storeEvents';
+import { Loader2 } from 'lucide-svelte';
 
-	let isOver = $state(false);
-	let opacitySearchSection = $derived(isOver ? 0.3 : 1);
-	let blurSearchSection = $derived(isOver ? 4 : 0);
-	let scaleSearchSection = $derived(isOver ? 0.99 : 1);
-	let scaleGraphSection = $derived(isOver ? 1.05 : 1);
-	let bottomDistance = $derived(isOver ? 1 : 0);
-	let isSearchSectionInEventsList = $derived(getIsSearchSectionInEventsList());
+let isOver = $state(false);
+let opacitySearchSection = $derived(isOver ? 0.3 : 1);
+let blurSearchSection = $derived(isOver ? 4 : 0);
+let scaleSearchSection = $derived(isOver ? 0.99 : 1);
+let scaleGraphSection = $derived(isOver ? 1.05 : 1);
+let bottomDistance = $derived(isOver ? 1 : 0);
+let isSearchSectionInEventsList = $derived(getIsSearchSectionInEventsList());
 
-	let allLocations: { name: string | undefined; id: number; geometries: any; amount: number }[] =
-		$state([]);
+let allLocations: { name: string | undefined; id: number; geometries: any; amount: number }[] =
+	$state([]);
+let MapPMTiles = $state<any>(null);
+let PieChartContainer = $state<any>(null);
+let TabViewContainer = $state<any>(null);
+let locationsRequest = 0;
+const geometryCache = new Map<number, Promise<any>>();
 
-	type EventWithLocations = {
-		locations: { location: number }[];
-	};
+type EventWithLocations = {
+	locations: { location: number }[];
+};
 
-	async function updateLocations(_filteredEvents: any) {
-		let locations: { name: string | undefined; id: number; geometries: any; amount: number }[] = [];
+function getCachedGeometries(id: number) {
+	let request = geometryCache.get(id);
+	if (!request) {
+		request = getGeometries(id);
+		geometryCache.set(id, request);
+	}
+	return request;
+}
 
-		for (const [years, events] of Object.entries(_filteredEvents)) {
-			for (const event of events as EventWithLocations[]) {
-				if (typeof event !== 'string' && event.locations) {
-					for (const location of event.locations) {
-						const existingLocation = locations.find((l) => l.id === Number(location.location));
-						if (!existingLocation) {
-							const arrayId = [String(location.location)];
-							await getTitle(arrayId, 'location');
-							const name = await getTitleStringAsync(Number(location.location), 'location');
-							const geometries = await getGeometries(Number(location.location));
+async function updateLocations(_filteredEvents: Events) {
+	const requestId = ++locationsRequest;
+	const counts = new Map<number, number>();
 
-							locations.push({
-								name: name,
-								id: location.location,
-								geometries: geometries,
-								amount: 1
-							});
-						} else {
-							existingLocation.amount++;
-						}
-					}
-				}
+	for (const events of Object.values(_filteredEvents || {})) {
+		for (const event of events as EventWithLocations[]) {
+			for (const location of event.locations || []) {
+				const id = Number(location.location);
+				counts.set(id, (counts.get(id) || 0) + 1);
 			}
 		}
-
-		allLocations = locations;
 	}
 
-	$effect(() => {
-		updateLocations($filteredEvents);
-		buildStatistics();
-	});
+	const locations = await Promise.all(
+		Array.from(counts, async ([id, amount]) => ({
+			name: await getTitleStringAsync(id, 'location'),
+			id,
+			geometries: await getCachedGeometries(id),
+			amount
+		}))
+	);
 
-	onMount(() => {
-		fetchOverpassData({ lat: 51.96245420666666, lng: 7.627307654999999 });
-		// Proactively start building the autocomplete indexes in the background so
-		// suggestions are (at least partially) available before the user types.
-		(['person', 'work', 'corporation', 'location'] as Entity[]).forEach((entity) => {
-			preloadEntityIndex(entity).catch((e) => console.error('preload', entity, e));
-		});
-	});
+	if (requestId === locationsRequest) allLocations = locations;
+}
+
+$effect(() => {
+	buildStatistics();
+	if ($selectedGraphType === 'map') {
+		updateLocations($filteredEvents);
+	} else {
+		locationsRequest++;
+		allLocations = [];
+	}
+});
+
+$effect(() => {
+	if ($selectedGraphType === 'map' && !MapPMTiles) {
+		import('$databaseMusiconn/components/graphs/map/MapPMTiles.svelte')
+			.then(({ default: component }) => (MapPMTiles = component))
+			.catch((error) => console.error('Unable to load map:', error));
+	} else if ($selectedGraphType === 'pie' && !PieChartContainer) {
+		import('$databaseMusiconn/components/graphs/pie/PieChartContainer.svelte')
+			.then(({ default: component }) => (PieChartContainer = component))
+			.catch((error) => console.error('Unable to load pie chart:', error));
+	} else if ($selectedGraphType === 'tab' && !TabViewContainer) {
+		import('$databaseMusiconn/components/graphs/tab/TabViewContainer.svelte')
+			.then(({ default: component }) => (TabViewContainer = component))
+			.catch((error) => console.error('Unable to load tab view:', error));
+	}
+});
 </script>
 
 <div class="flex h-[95dvh] flex-col overflow-hidden pb-12">
@@ -124,7 +131,7 @@
 				</div>
 			{/if}
 		{:else if $selectedGraphType === 'map'}
-			{#if allLocations.length > 0}
+			{#if MapPMTiles && allLocations.length > 0}
 				<MapPMTiles data={allLocations} />
 			{:else}
 				<div
@@ -137,13 +144,17 @@
 			<div
 				class="border-border flex h-[300px] w-11/12 max-w-3xl items-center justify-center rounded-xl border-2 p-4 pb-0"
 			>
-				<PieChartContainer />
+				{#if PieChartContainer}<PieChartContainer />{:else}<Loader2
+						class="h-6 w-6 animate-spin"
+					/>{/if}
 			</div>
 		{:else if $selectedGraphType === 'tab'}
 			<div
 				class="border-border flex h-[300px] w-11/12 max-w-3xl items-center justify-center rounded-xl border-2"
 			>
-				<TabViewContainer />
+				{#if TabViewContainer}<TabViewContainer />{:else}<Loader2
+						class="h-6 w-6 animate-spin"
+					/>{/if}
 			</div>
 		{/if}
 	</div>

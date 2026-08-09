@@ -1,45 +1,45 @@
 <script lang="ts">
-	import LL from '$lib/i18n/i18n-svelte';
-	import {
-		autocomplete,
-		setInputValue,
-		deleteSuggestions
-	} from '$databaseMusiconn/states/stateSearchSection.svelte';
-	import MethodSearch from '$databaseMusiconn/components/searchAndFilters/MethodSearch.svelte';
-	import SuggestionSearch from '$databaseMusiconn/components/searchAndFilters/SuggestionSearch.svelte';
-	import {
-		entitiesForSearchBox,
-		updateEntitiesForSearchBox
-	} from '$databaseMusiconn/stores/storeFilters';
+import LL from '$lib/i18n/i18n-svelte';
+import {
+	autocomplete,
+	setInputValue,
+	deleteSuggestions
+} from '$databaseMusiconn/states/stateSearchSection.svelte';
+import MethodSearch from '$databaseMusiconn/components/searchAndFilters/MethodSearch.svelte';
+import SuggestionSearch from '$databaseMusiconn/components/searchAndFilters/SuggestionSearch.svelte';
+import {
+	entitiesForSearchBox,
+	updateEntitiesForSearchBox
+} from '$databaseMusiconn/stores/storeFilters';
 
-	interface Props {
-		entities?: Entity[];
-		methodSearchVisible?: boolean;
-	}
+interface Props {
+	entities?: Entity[];
+	methodSearchVisible?: boolean;
+}
 
-	// the entities shouold arrive as pprops, as fall back we use the default entities use $props
-	let {
-		entities = ['person', 'work', 'corporation', 'location'],
-		methodSearchVisible = true
-	}: Props = $props();
+// the entities shouold arrive as pprops, as fall back we use the default entities use $props
+let {
+	entities = ['person', 'work', 'corporation', 'location'],
+	methodSearchVisible = true
+}: Props = $props();
 
-	let timeoutId: ReturnType<typeof setTimeout> | undefined = $state(undefined);
-	let _inputValue: string = $state('');
+let timeoutId: ReturnType<typeof setTimeout> | undefined = $state(undefined);
+let _inputValue: string = $state('');
 
-	$effect(() => {
-		setInputValue({ value: _inputValue });
-	});
+$effect(() => {
+	setInputValue({ value: _inputValue });
+});
 
-	const handleInput = () => {
-		clearTimeout(timeoutId);
-		timeoutId = setTimeout(() => {
-			if (_inputValue.length > 0) {
-				autocomplete();
-			} else {
-				deleteSuggestions;
-			}
-		}, 300);
-	};
+const handleInput = () => {
+	clearTimeout(timeoutId);
+	timeoutId = setTimeout(() => {
+		if (_inputValue.length > 0) {
+			autocomplete();
+		} else {
+			deleteSuggestions();
+		}
+	}, 300);
+};
 </script>
 
 <div class="flex items-center gap-2">
@@ -69,7 +69,7 @@
 					if (_inputValue.length > 0) {
 						autocomplete();
 					} else {
-						deleteSuggestions;
+						deleteSuggestions();
 					}
 				}}
 				class={'rounded-full border-2 px-4 pb-[0.15rem] text-sm transition-shadow hover:scale-103 hover:drop-shadow-lg ' +

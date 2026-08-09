@@ -50,7 +50,9 @@ const AUTOCOMPLETE_VERSION_KEY = 'musiconn-autocomplete-version';
 const AUTOCOMPLETE_VERSION = '2';
 
 /** Determine whether a subject marks a person as a composer. */
-function isCompositionSubject(subject: { id?: number; title?: string } | undefined | null): boolean {
+function isCompositionSubject(
+	subject: { id?: number; title?: string } | undefined | null
+): boolean {
 	if (!subject) return false;
 	if (subject.id === COMPOSITION_SUBJECT_ID) return true;
 	return (subject.title || '').toLowerCase().includes('komposition');
@@ -97,42 +99,37 @@ export async function gql<T = any>(
 	retries = 3,
 	timeoutMs = 30000
 ): Promise<T> {
-	const controller = new AbortController();
-	const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-	try {
-		let lastError: unknown;
-		for (let attempt = 0; attempt < retries; attempt++) {
-			try {
-				const res = await fetch(GQL_ENDPOINT, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ query, variables }),
-					signal: controller.signal
-				});
-				if (!res.ok) {
-					throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-				}
-				const json = await res.json();
-				if (json.errors && json.errors.length) {
-					throw new Error(
-						`GraphQL: ${json.errors
-							.map((e: any) => (typeof e === 'string' ? e : e.message))
-							.join('; ')}`
-					);
-				}
-				return json.data as T;
-			} catch (error) {
-				lastError = error;
-				if (attempt < retries - 1) {
-					await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
-				}
+	let lastError: unknown;
+	for (let attempt = 0; attempt < retries; attempt++) {
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+		try {
+			const res = await fetch(GQL_ENDPOINT, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ query, variables }),
+				signal: controller.signal
+			});
+			if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+			const json = await res.json();
+			if (json.errors?.length) {
+				throw new Error(
+					`GraphQL: ${json.errors
+						.map((e: any) => (typeof e === 'string' ? e : e.message))
+						.join('; ')}`
+				);
 			}
+			return json.data as T;
+		} catch (error) {
+			lastError = error;
+			if (attempt < retries - 1) {
+				await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+			}
+		} finally {
+			clearTimeout(timeoutId);
 		}
-		throw lastError instanceof Error ? lastError : new Error('GraphQL request failed');
-	} finally {
-		clearTimeout(timeoutId);
 	}
+	throw lastError instanceof Error ? lastError : new Error('GraphQL request failed');
 }
 
 /** Selection set shared by every event fetch (resolving a legacy `EventItem`). */
@@ -141,15 +138,13 @@ export async function gql<T = any>(
 const EVENT_SELECTION = `
 	id date dateYear
 	location { id }
-	involvedPersons { person { id } subjects { id } order }
+	involvedPersons { person { id } }
 	performances {
-		order
-		work { id involvedPersons { person { id } subjects { id } order } }
-		involvedPersons { person { id } subjects { id } order }
-		involvedCorporations { corporation { id } subjects { id } order }
+		work { id involvedPersons { person { id } subjects { id } } }
+		involvedPersons { person { id } }
 	}
-	involvedCorporations { corporation { id } subjects { id } order }
-	sources { source { id } citations { page url } }
+	involvedCorporations { corporation { id } subjects { id } }
+	sources { citations { page url } }
 `;
 
 /** Response of an `eventList` page for the shape we request. */
@@ -158,17 +153,37 @@ type RawEvent = {
 	date: number | null;
 	dateYear: string | null;
 	location: { id: number };
-	involvedPersons: { person: { id: number }; subjects: { id: number; title?: string }[]; order: number }[];
+	involvedPersons: {
+		person: { id: number };
+		subjects: { id: number; title?: string }[];
+		order: number;
+	}[];
 	performances: {
 		order: number;
 		work: {
 			id: number;
-			involvedPersons: { person: { id: number }; subjects: { id: number; title?: string }[]; order: number }[];
+			involvedPersons: {
+				person: { id: number };
+				subjects: { id: number; title?: string }[];
+				order: number;
+			}[];
 		};
-		involvedPersons: { person: { id: number }; subjects: { id: number; title?: string }[]; order: number }[];
-		involvedCorporations: { corporation: { id: number }; subjects: { id: number; title?: string }[]; order: number }[];
+		involvedPersons: {
+			person: { id: number };
+			subjects: { id: number; title?: string }[];
+			order: number;
+		}[];
+		involvedCorporations: {
+			corporation: { id: number };
+			subjects: { id: number; title?: string }[];
+			order: number;
+		}[];
 	}[];
-	involvedCorporations: { corporation: { id: number }; subjects: { id: number; title?: string }[]; order: number }[];
+	involvedCorporations: {
+		corporation: { id: number };
+		subjects: { id: number; title?: string }[];
+		order: number;
+	}[];
 	sources: { source: { id: number }; citations: { page: string | null; url: string | null }[] }[];
 };
 
@@ -315,11 +330,21 @@ export interface LocationMeta {
 }
 
 export async function getLocationMeta(locationId: number): Promise<LocationMeta> {
-	const data = await gql<{ events: { count: number; calendar: { meta: { firstYear: number; lastYear: number } }; timeline: { [year: string]: number } } }>(
+	const data = await gql<{
+		events: {
+			count: number;
+			calendar: { meta: { firstYear: number; lastYear: number } };
+			timeline: { [year: string]: number };
+		};
+	}>(
 		`query ($id: PositiveInt) { events(locationId: $id) { count calendar { meta { firstYear lastYear } } timeline } }`,
 		{ id: locationId }
 	);
-	const e = data.events || { count: 0, calendar: { meta: { firstYear: 0, lastYear: 0 } }, timeline: {} };
+	const e = data.events || {
+		count: 0,
+		calendar: { meta: { firstYear: 0, lastYear: 0 } },
+		timeline: {}
+	};
 	return {
 		count: e.count ?? 0,
 		firstYear: e.calendar?.meta?.firstYear ?? 0,
@@ -356,7 +381,9 @@ export async function getLocationInfo(id: number): Promise<LocationInfo> {
 		uid: String(loc.id),
 		title: loc.title,
 		slug: loc.slug || '',
-		categories: (loc.categories || []).map((c) => ({ label: categoryLabelToLegacyCode(c.label) })) as any,
+		categories: (loc.categories || []).map((c) => ({
+			label: categoryLabelToLegacyCode(c.label)
+		})) as any,
 		childs: (loc.children || []).map((c) => ({ location: c.id })) as any,
 		parents: (loc.parents || []).map((p) => ({ location: p.id })) as any,
 		geometries: geometries as any
@@ -376,11 +403,14 @@ type RawLocation = {
 };
 
 /** Legacy `geometries` array `[ { geo: [lat, lng], label: id } ]` for a single location. */
-export async function getGeometries(locationId: number): Promise<{ geo: number[]; label: number }[]> {
-	const data = await gql<{ location: { latitude: number | null; longitude: number | null; id: number } }>(
-		`query ($id: PositiveInt) { location(id: $id) { id latitude longitude } }`,
-		{ id: locationId }
-	);
+export async function getGeometries(
+	locationId: number
+): Promise<{ geo: number[]; label: number }[]> {
+	const data = await gql<{
+		location: { latitude: number | null; longitude: number | null; id: number };
+	}>(`query ($id: PositiveInt) { location(id: $id) { id latitude longitude } }`, {
+		id: locationId
+	});
 	const loc = data.location;
 	if (!loc || (loc.latitude == null && loc.longitude == null)) {
 		return [{ geo: [0, 0], label: locationId }];
@@ -407,7 +437,9 @@ export async function getTitlesByIds(
 	ids: (number | string)[]
 ): Promise<{ [id: number]: { title: string } }> {
 	const { query } = TITLE_FIELD[kind];
-	const uniqueIds = Array.from(new Set(ids.map((id) => Number(id)))).filter((id) => !Number.isNaN(id));
+	const uniqueIds = Array.from(new Set(ids.map((id) => Number(id)))).filter(
+		(id) => !Number.isNaN(id)
+	);
 	if (uniqueIds.length === 0) return {};
 
 	const result: { [id: number]: { title: string } } = {};
@@ -420,9 +452,7 @@ export async function getTitlesByIds(
 	}
 
 	for (const chunk of chunks) {
-		const fields = chunk
-			.map((id) => `${alias(id)}: ${query}(id: ${id}) { title }`)
-			.join('\n');
+		const fields = chunk.map((id) => `${alias(id)}: ${query}(id: ${id}) { title }`).join('\n');
 		const data = await gql<Record<string, { title: string } | null>>(`{ ${fields} }`);
 		for (const id of chunk) {
 			const node = data[alias(id)];
@@ -446,19 +476,47 @@ export async function getSuggestionCount(entity: Entity, id: number): Promise<nu
 		corporation: 'corporationId'
 	};
 	const key = queryKey[entity];
-	const data = await gql<{ events: { count: number } }>(
-		`{ events(${key}: ${id}) { count } }`
-	);
+	const data = await gql<{ events: { count: number } }>(`{ events(${key}: ${id}) { count } }`);
 	return data.events?.count ?? 0;
+}
+
+/** Fetch suggestion counts in one GraphQL request instead of one request per result. */
+export async function getSuggestionCounts(
+	items: { entity: Entity; id: number }[]
+): Promise<Record<string, number>> {
+	const queryKey: Record<Entity, 'personId' | 'workId' | 'locationId' | 'corporationId'> = {
+		person: 'personId',
+		composer: 'personId',
+		work: 'workId',
+		location: 'locationId',
+		corporation: 'corporationId'
+	};
+	const unique = Array.from(
+		new Map(items.map((item) => [`${item.entity}:${item.id}`, item])).values()
+	);
+	if (unique.length === 0) return {};
+
+	const aliases = unique.map((item, index) => {
+		const alias = `c_${index}`;
+		return {
+			key: `${item.entity}:${item.id}`,
+			alias,
+			field: `${alias}: events(${queryKey[item.entity]}: ${item.id}) { count }`
+		};
+	});
+	const data = await gql<Record<string, { count: number }>>(
+		`{ ${aliases.map((item) => item.field).join(' ')} }`
+	);
+	return Object.fromEntries(aliases.map((item) => [item.key, data[item.alias]?.count ?? 0]));
 }
 
 /** Person details needed by `formatFilter` (legacy `props=biography|names`). */
 export async function getPersonForFilter(
 	id: number
 ): Promise<{ title: string; dateOfBirth: number | null; dateOfDeath: number | null }> {
-	const data = await gql<{ person: { title: string; dateOfBirth: number | null; dateOfDeath: number | null } }>(
-		`{ person(id: ${id}) { title dateOfBirth dateOfDeath } }`
-	);
+	const data = await gql<{
+		person: { title: string; dateOfBirth: number | null; dateOfDeath: number | null };
+	}>(`{ person(id: ${id}) { title dateOfBirth dateOfDeath } }`);
 	return data.person || { title: '', dateOfBirth: null, dateOfDeath: null };
 }
 
@@ -471,9 +529,7 @@ export async function getWorkForFilter(
 			title: string;
 			involvedPersons: { person: { id: number }; subjects: { id: number; title: string }[] }[];
 		};
-	}>(
-		`{ work(id: ${id}) { title involvedPersons { person { id } subjects { id title } } } }`
-	);
+	}>(`{ work(id: ${id}) { title involvedPersons { person { id } subjects { id title } } } }`);
 	const work = data.work;
 	const composer = (work?.involvedPersons || []).find((ip) =>
 		(ip.subjects || []).some(isCompositionSubject)
@@ -497,6 +553,7 @@ const ENTITY_LIST: Record<Entity, { query: string; sort: string } | null> = {
 };
 
 const preloadedEntities = new Set<Entity>();
+const preloadPromises = new Map<Entity, Promise<AcEntry[]>>();
 const inMemoryIndex: Map<Entity, AcEntry[]> = new Map([
 	['person', []],
 	['composer', []],
@@ -558,16 +615,23 @@ async function saveIndexToDb(entity: Entity, entries: AcEntry[]): Promise<void> 
 	});
 }
 
+/** Share an in-flight preload so concurrent searches do not return partial indexes. */
+export function preloadEntityIndex(entity: Entity): Promise<AcEntry[]> {
+	const existing = preloadPromises.get(entity);
+	if (existing) return existing;
+	const promise = preloadEntityIndexInternal(entity).finally(() => preloadPromises.delete(entity));
+	preloadPromises.set(entity, promise);
+	return promise;
+}
+
 /** Preload all entries of the given entity kind into the in-memory + IndexedDB cache.
  * Populates the in-memory index INCREMENTALLY: as each batch of pages resolves
  * the index is re-sorted and published, so `suggestByPrefix` can match against
  * whatever has loaded so far instead of waiting for the full preload. */
-export async function preloadEntityIndex(entity: Entity): Promise<AcEntry[]> {
+async function preloadEntityIndexInternal(entity: Entity): Promise<AcEntry[]> {
 	const cached = inMemoryIndex.get(entity);
 	if (cached && cached.length > 0) return cached;
 	if (preloadedEntities.has(entity)) {
-		// Another in-flight preload; wait until memory is populated.
-		await new Promise((resolve) => setTimeout(resolve, 300));
 		return inMemoryIndex.get(entity) || [];
 	}
 
@@ -600,7 +664,9 @@ export async function preloadEntityIndex(entity: Entity): Promise<AcEntry[]> {
 	};
 
 	const fetchPage = async (page: number) => {
-		const data = await gql<{ [k: string]: { list: { id: number; title: string }[]; pageInfo: { totalPages: number } } }>(
+		const data = await gql<{
+			[k: string]: { list: { id: number; title: string }[]; pageInfo: { totalPages: number } };
+		}>(
 			`query ($page: PositiveInt) { ${config.query}(page: $page, pageSize: 100, sort: ${config.sort}) { list { id title } pageInfo { totalPages } } }`,
 			{ page }
 		);

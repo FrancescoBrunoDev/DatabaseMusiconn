@@ -24,20 +24,25 @@ const eventsLoadProgress = writable<number>(1);
  */
 const mergeEvents = (pageEvents: EventItem[]) => {
 	const current = get(fetchedEvents) || {};
-	let changed = false;
+	const eventsByYear = new Map<string, EventItem[]>();
+
 	for (const ev of pageEvents) {
-		const d = ev?.dates?.[0]?.date;
-		if (!d) continue;
-		const year = d.slice(0, 4);
-		if (!current[year]) {
-			current[year] = [];
-			changed = true;
-		}
-		current[year].push(ev);
-		changed = true;
+		const year = ev?.dates?.[0]?.date?.slice(0, 4);
+		if (!year) continue;
+		const events = eventsByYear.get(year) || [];
+		events.push(ev);
+		eventsByYear.set(year, events);
 	}
-	if (changed) fetchedEvents.set({ ...current });
+
+	for (const [year, newEvents] of eventsByYear) {
+		const events = [...(current[year] || []), ...newEvents];
+		events.sort((a, b) => (a.dates?.[0]?.date || '').localeCompare(b.dates?.[0]?.date || ''));
+		current[year] = events;
+	}
+
+	if (eventsByYear.size > 0) fetchedEvents.set({ ...current });
 };
+
 // Create a more efficient cache with loading states
 const allTitles = writable<allTitles>({
 	work: {},
@@ -222,7 +227,6 @@ const getTitleString = (uid: number, kind: Entity): string | undefined => {
 // Async version that waits for the data
 const getTitleStringAsync = (uid: number, kind: Entity): Promise<string> => {
 	return new Promise((resolve) => {
-		// Check if the title is already available in the store
 		const currentTitles = get(allTitles);
 		const title = currentTitles[kind]?.[uid]?.title;
 		if (title) {
@@ -230,28 +234,24 @@ const getTitleStringAsync = (uid: number, kind: Entity): Promise<string> => {
 			return;
 		}
 
-		// If not available, trigger fetch and wait
 		const loadingSet = loadingTitles.get(kind) || new Set();
 		const failedSet = failedTitles.get(kind) || new Set();
+		if (!loadingSet.has(uid) && !failedSet.has(uid)) getTitle([uid.toString()], kind);
 
-		if (!loadingSet.has(uid) && !failedSet.has(uid)) {
-			getTitle([uid.toString()], kind);
-		}
-
-		// Subscribe to the store and wait for the title
+		let timeout: ReturnType<typeof setTimeout>;
 		const unsubscribe = allTitles.subscribe((res) => {
 			const titleObj = res[kind]?.[uid];
 			if (titleObj) {
+				clearTimeout(timeout);
 				unsubscribe();
 				resolve(titleObj.title);
 			}
 		});
 
-		// Set a timeout to prevent hanging promises
-		setTimeout(() => {
+		timeout = setTimeout(() => {
 			unsubscribe();
 			resolve(`Unknown ${kind} (${uid})`);
-		}, 10000); // Increased timeout to 10 seconds
+		}, 10000);
 	});
 };
 
@@ -356,32 +356,29 @@ const initializeCache = () => {
 	}
 };
 
-// Save cache to localStorage
+// Save cache to localStorage, but debounce serialization because title batches
+// can update the store many times during event streaming.
+let cacheSaveTimer: ReturnType<typeof setTimeout> | undefined;
 const saveCache = () => {
-	// Check if we're in the browser (not SSR)
-	if (!browser) {
-		return;
-	}
-
-	try {
-		const data = get(allTitles);
-		const cacheObject = {
-			data,
-			timestamp: Date.now(),
-			version: CACHE_VERSION
-		};
-		localStorage.setItem(CACHE_KEY, JSON.stringify(cacheObject));
-	} catch (error) {
-		console.warn('Failed to save cache to localStorage:', error);
-	}
+	if (!browser) return;
+	clearTimeout(cacheSaveTimer);
+	cacheSaveTimer = setTimeout(() => {
+		try {
+			const cacheObject = {
+				data: get(allTitles),
+				timestamp: Date.now(),
+				version: CACHE_VERSION
+			};
+			localStorage.setItem(CACHE_KEY, JSON.stringify(cacheObject));
+		} catch (error) {
+			console.warn('Failed to save cache to localStorage:', error);
+		}
+	}, 250);
 };
 
-// Subscribe to allTitles changes and save to localStorage (only in browser)
+// Subscribe to allTitles changes and save to localStorage (only in browser).
 if (browser) {
-	allTitles.subscribe(() => {
-		saveCache();
-	});
-	// Initialize cache on module load
+	allTitles.subscribe(saveCache);
 	initializeCache();
 }
 
@@ -395,22 +392,19 @@ const preloadTitlesForEvents = async (events: EventItem[]) => {
 		composer: new Set()
 	};
 
-	// Collect all unique UIDs from all events
-	events.forEach((event) => {
-		const uidTypes: Entity[] = ['work', 'person', 'location', 'corporation', 'composer'];
-		uidTypes.forEach(async (kind) => {
+	// Collect all IDs before starting requests. The previous async forEach
+	// started the title requests before these sets had been populated.
+	for (const event of events) {
+		for (const kind of ['work', 'person', 'location', 'corporation', 'composer'] as Entity[]) {
 			const uids = await getUidsPerEntity(kind, event);
 			uids.forEach((uid) => allUidsToFetch[kind].add(Number(uid)));
-		});
-	});
-
-	// Fetch titles for all collected UIDs in parallel
-	const fetchPromises = Object.entries(allUidsToFetch).map(([kind, uidsSet]) => {
-		if (uidsSet.size > 0) {
-			const uidsArray = Array.from(uidsSet).map((uid) => uid.toString());
-			return getTitle(uidsArray, kind as Entity);
 		}
-		return Promise.resolve();
+	}
+
+	const fetchPromises = Object.entries(allUidsToFetch).map(([kind, uidsSet]) => {
+		if (uidsSet.size === 0) return Promise.resolve();
+		const uidsArray = Array.from(uidsSet).map((uid) => uid.toString());
+		return getTitle(uidsArray, kind as Entity);
 	});
 
 	try {

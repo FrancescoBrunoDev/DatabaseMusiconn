@@ -4,7 +4,6 @@ import { get, writable } from 'svelte/store';
 import { type DataSeries } from '$databaseMusiconn/components/graphs/line/LineGraphD3.svelte';
 import { endYear, fetchedEvents, startYear, timeline } from '$databaseMusiconn/stores/storeEvents';
 import { filteredEvents, filters } from '$databaseMusiconn/stores/storeFilters';
-import osmtogeojson from 'osmtogeojson';
 
 const selectedGraphType = persistStore<'line' | 'map' | 'pie' | 'tab'>('selectedGraphType', 'line');
 const JSONMuenster = persistStore<any>('JSONMuenster', {});
@@ -13,7 +12,7 @@ const dataForLineGraph = writable<DataSeries[]>([]);
 const updateLineData = async () => {
 	let _filters: Filters = get(filters);
 
-	let _fetchedEvents: Events = get(fetchedEvents);
+	let _fetchedEvents: Events = get(fetchedEvents) ?? {};
 
 	let _startYear: number = get(startYear);
 	let _endYear: number = get(endYear);
@@ -135,9 +134,7 @@ const updateLineDataFromTimeline = () => {
 	const _timeline = get(timeline);
 	const _startYear = get(startYear);
 	const _endYear = get(endYear);
-	const series: DataSeries[] = [
-		{ name: 'and', id: 'and', color: 'hsl(var(--text))', data: [] }
-	];
+	const series: DataSeries[] = [{ name: 'and', id: 'and', color: 'hsl(var(--text))', data: [] }];
 	for (let year = _startYear; year <= _endYear + 10; year++) {
 		series[0].data.push({ year, value: _timeline[String(year)] || 0 });
 	}
@@ -145,101 +142,46 @@ const updateLineDataFromTimeline = () => {
 };
 
 const updateFilteredEventsAndUdateDataForGraph = async () => {
-	updateLineData();
-	let _filters: Filters = get(filters);
+	const currentFilters = get(filters);
+	const loadedEvents = get(fetchedEvents) ?? {};
+	const filtered: Events = {};
+	const start = get(startYear);
+	const end = get(endYear);
+	const hasAndOrFilters = currentFilters.and.length > 0 || currentFilters.or.length > 0;
+	const hasFilters = hasAndOrFilters || currentFilters.not.length > 0;
 
-	let _fetchedEvents: Events = get(fetchedEvents);
-
-	let _startYear: number = get(startYear);
-	let _endYear: number = get(endYear);
-	filteredEvents.set({});
-	// there should be an yearObj for each year from startYear to endYear
-	for (let year = _startYear; year <= _endYear + 10; year++) {
-		const events = _fetchedEvents[year as keyof Events] || [];
-		const yearObj: DataRecordCoordinates = {
-			x: year,
-			filters: {},
-			eventCount: 0
-		};
-
-		if (_filters.or.length > 0 || _filters.and.length > 0 || _filters.not.length > 0) {
-			events.forEach((event) => {
-				const andConditions =
-					_filters.and.length > 0 &&
-					_filters.and.every((filter) => hasMatchingPerformances(event, filter));
-				const orConditions =
-					_filters.or.length > 0 &&
-					_filters.or.some((filter) => hasMatchingPerformances(event, filter));
-				const notConditions = _filters.not.some((filter) => hasMatchingPerformances(event, filter));
-
-				if (
-					!notConditions &&
-					_filters.not.length > 0 &&
-					_filters.and.length === 0 &&
-					_filters.or.length === 0
-				) {
-					// nel caso in cui ci siano solo not
-
-					filteredEvents.update((currentEvents) => {
-						currentEvents[year] = currentEvents[year] || [];
-						currentEvents[year].push(event);
-						yearObj.eventCount = currentEvents[year].length;
-						return { ...currentEvents }; // Return a copy of the modified object
-					});
-				} else if ((andConditions || orConditions) && !notConditions) {
-					filteredEvents.update((currentEvents) => {
-						currentEvents[year] = currentEvents[year] || [];
-						currentEvents[year].push(event);
-						yearObj.eventCount = currentEvents[year].length;
-
-						// Update yearObj.filters with all the or filters
-						_filters.or?.forEach((filter) => {
-							if (hasMatchingPerformances(event, filter)) {
-								const key = filter.id + filter.entity;
-								if (yearObj.filters && yearObj.filters[key]) {
-									yearObj.filters[key].count = (yearObj.filters[key].count || 0) + 1;
-								} else {
-									yearObj.filters[key] = { count: 1, color: filter.color };
-								}
-							}
-						});
-
-						// Update yearObj.filters . The key is filter.id + filter.entity in lineGraph
-						if (andConditions) {
-							if (yearObj.filters && yearObj.filters['and']) {
-								yearObj.filters['and'].count = (yearObj.filters['and'].count || 0) + 1;
-							} else {
-								yearObj.filters['and'] = { count: 1 };
-							}
-						}
-
-						// Update yearObj.filters with an additional or filter
-						if (orConditions) {
-							if (yearObj.filters && yearObj.filters['or']) {
-								yearObj.filters['or'].count = (yearObj.filters['or'].count || 0) + 1;
-							} else {
-								yearObj.filters['or'] = { count: 1 };
-							}
-						}
-
-						return { ...currentEvents }; // Return a copy of the modified object
-					});
-				}
-			});
-		} else {
-			filteredEvents.update((currentEvents) => {
-				currentEvents[year] = events;
-				// eliminate the year if there are no events
-				if (events.length === 0) {
-					delete currentEvents[year];
-				}
-				return { ...currentEvents }; // Return a copy of the modified object
-			});
+	for (let year = start; year <= end + 10; year++) {
+		const events = loadedEvents[year as keyof Events] || [];
+		if (!hasFilters) {
+			if (events.length > 0) filtered[year] = events;
+			continue;
 		}
+
+		const selected = events.filter((event) => {
+			const excluded = currentFilters.not.some((filter) => hasMatchingPerformances(event, filter));
+			if (excluded) return false;
+			if (!hasAndOrFilters) return true;
+
+			const andMatches =
+				currentFilters.and.length > 0 &&
+				currentFilters.and.every((filter) => hasMatchingPerformances(event, filter));
+			const orMatches =
+				currentFilters.or.length > 0 &&
+				currentFilters.or.some((filter) => hasMatchingPerformances(event, filter));
+			return andMatches || orMatches;
+		});
+
+		if (selected.length > 0) filtered[year] = selected;
 	}
+
+	// Notify subscribers once per batch instead of once per year/event. This keeps
+	// the event list, map and statistics from doing repeated full recalculations.
+	filteredEvents.set(filtered);
+	updateLineData();
 };
 
 const fetchOverpassData = async (centerPoint: { lat: number; lng: number }) => {
+	const { default: osmtogeojson } = await import('osmtogeojson');
 	const radius = 2; // km
 	const bbox = [
 		centerPoint.lat - radius / 111, // 1 degree latitude ~ 111 km

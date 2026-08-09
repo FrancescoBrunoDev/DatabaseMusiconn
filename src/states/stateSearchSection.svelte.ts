@@ -1,5 +1,5 @@
 import {
-	getSuggestionCount,
+	getSuggestionCounts,
 	preloadEntityIndex,
 	suggestByPrefix
 } from '$databaseMusiconn/lib/musiconnApi';
@@ -7,6 +7,7 @@ import { entitiesForSearchBox, filters } from '$databaseMusiconn/stores/storeFil
 import { get } from 'svelte/store';
 
 type SuggestionWithCount = AutocompleteResult & { count?: number };
+const suggestionCountCache = new Map<string, number>();
 
 let suggestions = $state<SuggestionWithCount[]>([]);
 let inputValue = $state<string>('');
@@ -66,42 +67,43 @@ function setIsLoadingSuggestions({ value }: { value: boolean }) {
 async function enrichAndSortSuggestions(
 	baseSuggestions: AutocompleteResult[]
 ): Promise<SuggestionWithCount[]> {
-	const suggestionsWithCounts = await Promise.all(
-		baseSuggestions.map(async (suggestion): Promise<SuggestionWithCount> => {
-			const entity = (suggestion[1] as Entity) || 'person';
-			const count = await getSuggestionCount(entity, Number(suggestion[2]));
-			return { ...suggestion, count };
+	const items = baseSuggestions.map((suggestion) => ({
+		entity: (suggestion[1] as Entity) || 'person',
+		id: Number(suggestion[2])
+	}));
+	const missing = items.filter((item) => !suggestionCountCache.has(`${item.entity}:${item.id}`));
+	if (missing.length > 0) {
+		const fetched = await getSuggestionCounts(missing);
+		for (const [key, count] of Object.entries(fetched)) suggestionCountCache.set(key, count);
+	}
+	return baseSuggestions
+		.map((suggestion, index) => {
+			const item = items[index];
+			return {
+				...suggestion,
+				count: suggestionCountCache.get(`${item.entity}:${item.id}`) ?? 0
+			};
 		})
-	);
-
-	// Sort by count in descending order (highest count first)
-	return suggestionsWithCounts.sort((a, b) => (b.count || 0) - (a.count || 0));
+		.sort((a, b) => (b.count || 0) - (a.count || 0));
 }
 
 // Helper function to remove suggestions that are already in filters
 function removeFormSuggestionIfInFilters(results: AutocompleteResult[]): AutocompleteResult[] {
-	let _results: AutocompleteResult[] = results;
-	filters.subscribe((filter: any) => {
-		const mapFilterItems = (items: Filter[]) =>
-			items.map((item) => ({
-				id: item.id,
-				entity: item.entity === 'composer' ? 'person' : item.entity
-			}));
+	const filter = get(filters);
+	const mapFilterItems = (items: Filter[]) =>
+		items.map((item) => ({
+			id: item.id,
+			entity: item.entity === 'composer' ? 'person' : item.entity
+		}));
+	const activeItems = [
+		...mapFilterItems(filter.not),
+		...mapFilterItems(filter.or),
+		...mapFilterItems(filter.and)
+	];
 
-		const notFilterItems = mapFilterItems(filter.not);
-		const orFilterItems = mapFilterItems(filter.or);
-		const andFilterItems = mapFilterItems(filter.and);
-
-		const isFiltered = (result: any) => (item: any) =>
-			item.id == result[2] && item.entity == result[1];
-
-		const filteredResults = results.filter(
-			(result: AutocompleteResult) =>
-				![...notFilterItems, ...orFilterItems, ...andFilterItems].some(isFiltered(result))
-		);
-		_results = filteredResults;
-	});
-	return _results;
+	return results.filter(
+		(result) => !activeItems.some((item) => item.id == result[2] && item.entity == result[1])
+	);
 }
 
 let lastAutocompleteToken = 0;

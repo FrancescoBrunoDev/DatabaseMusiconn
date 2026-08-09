@@ -4,7 +4,12 @@ import {
 	getLocationMeta,
 	type LocationMeta
 } from '$databaseMusiconn/lib/musiconnApi';
-import { mainLocationID, startYear, endYear, useBounderiesYears } from '$databaseMusiconn/stores/storeEvents';
+import {
+	mainLocationID,
+	startYear,
+	endYear,
+	useBounderiesYears
+} from '$databaseMusiconn/stores/storeEvents';
 import { get } from 'svelte/store';
 
 /**
@@ -88,21 +93,52 @@ const streamCache = new Map<
 	}
 >();
 
+const MAX_STREAM_CACHE_ENTRIES = 12;
+
 /**
  * Fast metadata + streamed per-page events for a location, cached for 1 hour.
- * Cold: kicks off all page fetches concurrently and returns their promises so
- * SvelteKit streams them individually. Warm: returns already-resolved arrays so
- * the page hydrates instantly.
+ * Cold: starts a bounded number of page fetches and returns promises so SvelteKit
+ * streams them individually. Warm: returns already-resolved arrays so the page
+ * hydrates instantly.
  */
-export const streamEventsForLocation = async (
-	locationId: number
-): Promise<StreamedEvents> => {
+const streamInFlight = new Map<number, Promise<StreamedEvents>>();
+
+export const streamEventsForLocation = (locationId: number): Promise<StreamedEvents> => {
+	const existing = streamInFlight.get(locationId);
+	if (existing) return existing;
+	const request = streamEventsForLocationInternal(locationId).finally(() =>
+		streamInFlight.delete(locationId)
+	);
+	streamInFlight.set(locationId, request);
+	return request;
+};
+
+const streamEventsForLocationInternal = async (locationId: number): Promise<StreamedEvents> => {
 	const now = Date.now();
 	let entry = streamCache.get(locationId);
-	if (!entry || now - entry.timestamp > 3600000) {
+	if (entry && now - entry.timestamp <= 3600000) {
+		entry.timestamp = now;
+	} else {
 		const meta = await getLocationMeta(locationId);
 		const totalPages = Math.max(1, Math.ceil(meta.count / 100));
 		const pages: (EventItem[] | Promise<EventItem[]>)[] = [];
+		const deferred: {
+			promise: Promise<EventItem[]>;
+			resolve: (page: EventItem[]) => void;
+			reject: (error: unknown) => void;
+		}[] = [];
+
+		for (let p = 1; p <= totalPages; p++) {
+			let resolve!: (page: EventItem[]) => void;
+			let reject!: (error: unknown) => void;
+			const promise = new Promise<EventItem[]>((res, rej) => {
+				resolve = res;
+				reject = rej;
+			});
+			pages.push(promise);
+			deferred.push({ promise, resolve, reject });
+		}
+
 		entry = {
 			timeline: meta.timeline,
 			firstYear: meta.firstYear,
@@ -111,16 +147,41 @@ export const streamEventsForLocation = async (
 			pages,
 			timestamp: now
 		};
-		for (let p = 1; p <= totalPages; p++) {
-			const promise = getEventPage(locationId, p).then((page) => {
-				// Swap the promise for the resolved page in the cache so subsequent
-				// requests hydrate instantly.
-				if (entry) entry.pages[p - 1] = page;
-				return page;
-			}).catch(() => [] as EventItem[]);
-			pages.push(promise);
-		}
+		// Publish the entry before starting requests so simultaneous callers share it.
 		streamCache.set(locationId, entry);
+		while (streamCache.size > MAX_STREAM_CACHE_ENTRIES) {
+			const oldest = [...streamCache.entries()].sort(
+				([, a], [, b]) => a.timestamp - b.timestamp
+			)[0]?.[0];
+			if (oldest === undefined) break;
+			streamCache.delete(oldest);
+		}
+
+		// Keep the API load bounded. Page 1 starts immediately; later pages are
+		// launched in waves as earlier pages settle instead of all at once.
+		const concurrency = Math.min(6, totalPages);
+		let nextPage = 1;
+		const fetchNextBatch = () => {
+			const batch = [];
+			while (nextPage <= totalPages && batch.length < concurrency) batch.push(nextPage++);
+			if (batch.length === 0) return;
+
+			Promise.all(
+				batch.map(async (pageNumber) => {
+					try {
+						const page = await getEventPage(locationId, pageNumber);
+						entry!.pages[pageNumber - 1] = page;
+						deferred[pageNumber - 1].resolve(page);
+					} catch (error) {
+						// Preserve the failure so the UI can report an incomplete load;
+						// never turn a failed page into an apparently valid empty page.
+						if (streamCache.get(locationId) === entry) streamCache.delete(locationId);
+						deferred[pageNumber - 1].reject(error);
+					}
+				})
+			).finally(fetchNextBatch);
+		};
+		fetchNextBatch();
 	}
 	return {
 		timeline: entry.timeline,
