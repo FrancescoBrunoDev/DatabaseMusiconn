@@ -1,35 +1,39 @@
 <script lang="ts">
-import {
-	getTitles,
-	getCountersForEvent,
-	getFormattedDate
-} from '$databaseMusiconn/stores/storeEvents';
-import { Circle } from 'lucide-svelte';
-import { cn } from '$lib/utils';
+	import {
+		getTitles,
+		getCountersForEvent,
+		getFormattedDate
+	} from '$databaseMusiconn/stores/storeEvents';
+	import { filters } from '$databaseMusiconn/stores/storeFilters';
+	import { Circle } from 'lucide-svelte';
+	import { cn } from '$lib/utils';
 
-interface Props {
-	event: EventItem;
-	selectedEvent?: EventItem | null;
-	isEventOpen?: boolean;
-}
-
-let { event, selectedEvent = $bindable(), isEventOpen = $bindable() }: Props = $props();
-
-let date: string = $derived.by(() => getFormattedDate({ event }));
-let filtersArrayWithCounter: {
-	[key: string]: {
-		counter: number;
-		color: string;
-	};
-} = $derived.by(() => getCountersForEvent({ event }));
-
-function handleClickEvent() {
-	isEventOpen = !isEventOpen;
-	selectedEvent = event;
-	if (isEventOpen) {
-		getTitles(event);
+	interface Props {
+		event: EventItem;
+		selectedEvent?: EventItem | null;
+		isEventOpen?: boolean;
 	}
-}
+
+	let { event, selectedEvent = $bindable(), isEventOpen = $bindable() }: Props = $props();
+
+	let date: string = $derived.by(() => getFormattedDate({ event }));
+	let filtersArrayWithCounter: {
+		[key: string]: {
+			counter: number;
+			color: string;
+		};
+	} = $derived.by(() => {
+		$filters;
+		return getCountersForEvent({ event });
+	});
+
+	function handleClickEvent() {
+		isEventOpen = !isEventOpen;
+		selectedEvent = event;
+		if (isEventOpen) {
+			getTitles(event);
+		}
+	}
 </script>
 
 <div

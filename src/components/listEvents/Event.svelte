@@ -28,7 +28,10 @@
 			counter: number;
 			color: string;
 		};
-	} = $derived.by(() => getCountersForEvent({ event }));
+	} = $derived.by(() => {
+		$filters;
+		return getCountersForEvent({ event });
+	});
 
 	function handleClickEvent() {
 		isEventOpen = !isEventOpen;
