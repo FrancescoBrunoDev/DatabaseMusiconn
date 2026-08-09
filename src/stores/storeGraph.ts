@@ -231,14 +231,11 @@ const hasMatchingPerformances = (event: EventItem, filter: Filter) => {
 				return true;
 			}
 
-			if (performance.persons) {
-				if (event.persons) {
-					for (const person of event.persons) {
-						if (filter.entity === 'person' && filter.id === person.person) {
-							return true;
-						}
-					}
-				}
+			if (
+				filter.entity === 'person' &&
+				performance.persons?.some((person) => filter.id === person.person)
+			) {
+				return true;
 			}
 		}
 	}

@@ -1,7 +1,4 @@
-import {
-	getPersonForFilter,
-	getWorkForFilter
-} from '$databaseMusiconn/lib/musiconnApi';
+import { getPersonForFilter, getWorkForFilter } from '$databaseMusiconn/lib/musiconnApi';
 import { fetchedEvents } from '$databaseMusiconn/stores/storeEvents';
 import { updateFilteredEventsAndUdateDataForGraph } from '$databaseMusiconn/stores/storeGraph';
 import { persistStore } from '$databaseMusiconn/utils/storeUtils';
@@ -225,17 +222,17 @@ const deUrlifyerFilters = async (filtersUrl: FiltersForUrl) => {
 	for (const filter of filtersOr) {
 		const name = '';
 		const entity = whichEntityIs(filter.entity);
-		addFilterElement({ suggestion: [name, entity, filter.id] }, 'or');
+		await addFilterElement({ suggestion: [name, entity, filter.id] }, 'or');
 	}
 	for (const filter of filtersAnd) {
 		const name = '';
 		const entity = whichEntityIs(filter.entity);
-		addFilterElement({ suggestion: [name, entity, filter.id] }, 'and');
+		await addFilterElement({ suggestion: [name, entity, filter.id] }, 'and');
 	}
 	for (const filter of filtersNot) {
 		const name = '';
 		const entity = whichEntityIs(filter.entity);
-		addFilterElement({ suggestion: [name, entity, filter.id] }, 'not');
+		await addFilterElement({ suggestion: [name, entity, filter.id] }, 'not');
 	}
 };
 
@@ -270,15 +267,14 @@ const addFilterElement = async (selected: any, method?: Method) => {
 	// minimal filter so the user's selection is never silently lost.
 	let formattedFilter: Filter;
 	try {
-		formattedFilter =
-			(await formatFilter(filter)) ?? {
-				id: filter.id,
-				entity: filter.entity,
-				name: filter.name,
-				birth: undefined,
-				death: undefined,
-				color: filter.color
-			};
+		formattedFilter = (await formatFilter(filter)) ?? {
+			id: filter.id,
+			entity: filter.entity,
+			name: filter.name,
+			birth: undefined,
+			death: undefined,
+			color: filter.color
+		};
 	} catch (error) {
 		console.error('formatFilter failed, using fallback:', error);
 		formattedFilter = {

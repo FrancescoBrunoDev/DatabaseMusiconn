@@ -288,7 +288,10 @@ function getCountersForEvent({ event }: { event: EventItem }) {
 				case 'person':
 					event.performances.forEach((performance) => {
 						if (entity === 'composer' && performance.composers) {
-							incrementCounter(filterId, filter.id == performance.composers[0].person);
+							incrementCounter(
+								filterId,
+								performance.composers.some((composer) => filter.id === composer.person)
+							);
 						} else if (entity === 'work') {
 							incrementCounter(filterId, filter.id == performance.work);
 						} else if (entity === 'person' && performance.persons) {

@@ -19,8 +19,7 @@
 			$filters[method].some(
 				(filter) =>
 					(filter.entity === 'composer' &&
-						performance.composers &&
-						filter.id == performance.composers[0].person) ||
+						performance.composers?.some((composer) => filter.id === composer.person)) ||
 					(filter.entity === 'work' && filter.id == performance.work) ||
 					(filter.entity === 'person' &&
 						performance.persons &&
@@ -79,7 +78,7 @@
 			<div in:fly={{ y: 20, duration: 100, delay: 200 }} class="flex items-center gap-1">
 				<div class="flex flex-col gap-1">
 					{#each Object.values($filters).flat() as filter}
-						{#if filter.entity === 'composer' && performance.composers && filter.id == performance.composers[0].person}
+						{#if filter.entity === 'composer' && performance.composers?.some((composer) => filter.id === composer.person)}
 							<Circle class="shrink-0" fill={filter.color} size={10} stroke-opacity={0} />
 						{/if}
 						{#if filter.entity === 'work' && filter.id == performance.work}

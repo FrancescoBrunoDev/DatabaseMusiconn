@@ -35,8 +35,8 @@
 		}
 	});
 
-	const handleFilterFromSuggestion = (suggestion: any) => {
-		addFilterElement(suggestion);
+	const handleFilterFromSuggestion = async (suggestion: any) => {
+		await addFilterElement(suggestion);
 		setInputValue({ value: '' });
 		deleteSuggestions();
 		isOpen = false;
