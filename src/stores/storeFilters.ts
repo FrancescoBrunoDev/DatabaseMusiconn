@@ -1,5 +1,5 @@
 import { getPersonForFilter, getWorkForFilter } from '$databaseMusiconn/lib/musiconnApi';
-import { fetchedEvents } from '$databaseMusiconn/stores/storeEvents';
+import { eventsLoadProgress, fetchedEvents } from '$databaseMusiconn/stores/storeEvents';
 import { updateFilteredEventsAndUdateDataForGraph } from '$databaseMusiconn/stores/storeGraph';
 import { persistStore } from '$databaseMusiconn/utils/storeUtils';
 import { get, writable } from 'svelte/store';
@@ -482,7 +482,23 @@ const cleanDoubleFilters = () => {
 	});
 };
 
+const waitForEventsToFinish = async () => {
+	if (get(eventsLoadProgress) >= 1) return;
+	await new Promise<void>((resolve) => {
+		const unsubscribe = eventsLoadProgress.subscribe((progress) => {
+			if (progress >= 1) {
+				unsubscribe();
+				resolve();
+			}
+		});
+	});
+};
+
 const isMoreAPersonOrAComposer = async (id: number) => {
+	// A zero autocomplete count is not proof that the person is not a
+	// composer: the API count only covers direct event performers. Wait for
+	// the event stream before classifying a person/composer suggestion.
+	await waitForEventsToFinish();
 	const personId = id;
 	let _fetchedEvents: Events = await new Promise((resolve) => {
 		fetchedEvents.subscribe((res) => {
