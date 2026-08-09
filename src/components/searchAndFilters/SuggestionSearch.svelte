@@ -70,8 +70,8 @@
 		transition:slide
 		class="bg-background dark:bg-dark-background z-10 mt-2 flex h-52 w-full flex-col gap-y-2 overflow-auto overscroll-auto rounded-xl border-2 p-2"
 	>
-		{#if isLoadingSuggestions}
-			<!-- Show loading state while fetching and sorting suggestions -->
+		{#if isLoadingSuggestions && suggestions.length === 0}
+			<!-- Show loading state until the first matching page is available. -->
 			<div class="text-secondary flex h-full items-center justify-center">
 				<Loader2 class="h-6 w-6 animate-spin" />
 				<p class="ml-2">Loading suggestions...</p>

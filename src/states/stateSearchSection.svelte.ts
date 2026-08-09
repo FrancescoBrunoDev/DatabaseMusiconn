@@ -152,21 +152,23 @@ const autocomplete = async () => {
 	const token = ++lastAutocompleteToken;
 
 	try {
-		// Kick off preloading for every enabled entity kind. It populates the
-		// in-memory index INCREMENTALLY, so we can show suggestions from whatever has
-		// loaded so far instead of blocking ~80s on the full preload.
+		// Kick off preloading for every enabled entity kind. The index is populated
+		// incrementally, so keep checking it while later pages are loading instead of
+		// making the user wait for the complete location list.
 		const preload = Promise.all(entities.map((entity) => preloadEntityIndex(entity)));
+		let preloadFinished = false;
+		preload.finally(() => (preloadFinished = true)).catch(() => {});
 
-		// First pass: match against whatever is already in the index (cached pages,
-		// persisted IndexedDB cache, or pages that already streamed in).
-		await computeSuggestions(token);
-
-		// Once the full preload finishes, recompute: more entries will be available,
-		// potentially surfacing matches that weren't there on the first pass.
-		await preload;
-		if (token === lastAutocompleteToken) {
+		while (token === lastAutocompleteToken && !preloadFinished) {
 			await computeSuggestions(token);
+			if (preloadFinished) break;
+			await Promise.race([preload, new Promise((resolve) => setTimeout(resolve, 250))]);
 		}
+
+		// Once the full preload finishes, recompute: more entries may be available,
+		// potentially surfacing matches that weren't present in an earlier page.
+		await preload;
+		if (token === lastAutocompleteToken) await computeSuggestions(token);
 	} catch (error) {
 		console.error('Error fetching suggestions:', error);
 		if (token === lastAutocompleteToken) suggestions = [];

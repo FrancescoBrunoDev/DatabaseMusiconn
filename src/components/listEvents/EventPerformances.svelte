@@ -14,7 +14,7 @@
 	let isPerformanceOpen = $state(false);
 	const methods: Array<keyof typeof $filters> = ['and', 'or', 'not'];
 
-	const hasMatchingFilter = (performance: any) =>
+	const hasMatchingFilter = (performance: EventPerformance) =>
 		methods.some((method) =>
 			$filters[method].some(
 				(filter) =>
