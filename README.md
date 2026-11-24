@@ -1,38 +1,22 @@
-# create-svelte
+# DatabaseMusiconn (SoundTrails)
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+A **SvelteKit 5 / TypeScript** discovery and analytics web application built on top of the [musiconn.performance](https://performance.musiconn.de) historical concert database.
 
-## Creating a project
+## Architecture & Technical Highlights
 
-If you're seeing this, you've probably already done this step. Congrats!
+- **Same-origin GraphQL Proxy (`src/routes/api/musiconn/+server.ts`)**: The upstream musiconn Strawberry GraphQL endpoint does not permit browser CORS preflight requests. All client queries are routed through a SvelteKit server endpoint that forwards requests and streams responses back on the same origin.
+- **GraphQL Client & Legacy Adapter Layer (`src/lib/musiconnApi.ts`)**: Translates paginated GraphQL queries (`eventList`, aliased multi-entity lookups for `person`, `work`, `location`, `corporation`) into normalized domain models, with configurable request timeouts, retry logic, and batching (pages of 100 records).
+- **Client-side Prefix Search & IndexedDB Cache**: Because the upstream GraphQL API does not provide server-side name filtering on entity lists, entity catalogs are preloaded in paginated batches, stored in IndexedDB (`src/lib/storage.svelte.ts`), and queried via fast client-side prefix matching.
+- **Interactive Geospatial & Temporal Views**:
+  - **MapLibre GL + Protomaps (PMTiles)**: Vector tile map visualization with presigned S3/MinIO URL generation (`src/routes/api/map/presigned-url/+server.ts`).
+  - **D3.js Visualizations**: Interactive timeline (`LineGraphD3.svelte`) and distribution charts (`PieChart.svelte`) synchronized with active facet filters.
+- **Bilingual UI (`typesafe-i18n`)**: Full German and English localization (`de` / `en`).
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Development
 
 ```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+npm install
+npm run dev          # Starts Vite dev server + typesafe-i18n watcher
+npm run check        # Runs svelte-kit sync & svelte-check
+npm run build        # Production Node build (adapter-node)
 ```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
